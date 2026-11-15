@@ -1,0 +1,141 @@
+{
+  "file": "volcanic_units_broad.tif",
+  "vector": "data/raw/sernageomin_1M/mapa_geologico_1M_cigiden.geojson",
+  "column": "geo",
+  "regex": "^[A-Za-z]+3[a-z]*$",
+  "res_deg": 0.01,
+  "crs": "EPSG:4326",
+  "n_features": 18935,
+  "n_null_or_empty_geometries_skipped": 1,
+  "n_volcanic_features": 3514,
+  "pct_pixels_volcanic_of_covered": 20.308,
+  "matched_values": [
+    "CP3",
+    "E3",
+    "E3b",
+    "EM3",
+    "J3a",
+    "J3i",
+    "JK3",
+    "JK3o",
+    "Kia3",
+    "Ks3a",
+    "Ks3i",
+    "M3av",
+    "M3b",
+    "M3i",
+    "M3o",
+    "M3t",
+    "MP3",
+    "Ms3i",
+    "Ms3t",
+    "OM3",
+    "OM3b",
+    "OM3t",
+    "OS3",
+    "P3i",
+    "P3t",
+    "PE3a",
+    "PE3i",
+    "PPl3",
+    "PTr3",
+    "Pl3",
+    "Pl3t",
+    "Q3av",
+    "Q3i",
+    "Q3t",
+    "TrJ3"
+  ],
+  "built_utc": "2026-11-15T04:21:08Z",
+  "note": "Clasificacion por patron de texto: criterio a validar con el equipo. A escala 1:1.000.000 las unidades son generalizadas.",
+  "criterion": "AMPLIA: todas las secuencias volcanicas de cualquier edad (codigos con digito 3 = composicio 'Secuencias volcanicas' + EM3). Excluye volcanosedimentarias (codigo 2) e intrusivos.",
+  "values": "1=unidad volcanica, 0=otra unidad (incluye 'S I'/sin informacion: hielo, lagos, etc.), 255=nodata (fuera de poligonos)",
+  "source": {
+    "dataset": "Mapa Geologico de Chile escala 1:1.000.000 (SERNAGEOMIN 2002; version digital: Publicacion Geologica Digital N4, 2003)",
+    "original_author": "Servicio Nacional de Geologia y Mineria (SERNAGEOMIN)",
+    "THIRD_PARTY_COPY": true,
+    "copy_note": "NO es el canal oficial. Copia redistribuida en ArcGIS Online; creditos del item: 'Autor: CIGIDEN. Fuente: SERNAGEOMIN.' Cuenta 'DirectorEjecutivo' (org. ArcGIS no visible publicamente; sus otros items acreditan a CIGIDEN). Item creado 2020-07-16, modificado 2020-07-17. Licencia no declarada en el item.",
+    "copy_item_url": "https://www.arcgis.com/home/item.html?id=0c38d62b9ec147eb9684826e4818629a",
+    "copy_service_url": "https://services7.arcgis.com/UeyripQFTg6pfUe5/arcgis/rest/services/Mapa_Geol%C3%B3gico_de_Chile/FeatureServer/0",
+    "download_date": "2026-11-15",
+    "download_method": "query where=1=1, outFields=FID,geo,epoca,composicio,era,periodo, outSR=4326, f=geojson, 10 bloques de 2000 (orderBy FID)",
+    "local_vector": "TerraMatch_GIS/data/raw/sernageomin_1M/mapa_geologico_1M_cigiden.geojson (52.0 MB, 18935 entidades, 1 geometria nula 'mar' omitida)",
+    "official_channels_tried_2026-11-15": {
+      "tiendadigital.sernageomin.cl (M61, Shapefile-Access, gratis)": "dominio no resuelve (NXDOMAIN, tambien con 8.8.8.8)",
+      "sdngsig.sernageomin.cl/gissdng/rest/services/Geoportal/GeologiaBase/MapServer": "TCP 443 rechazado",
+      "doi:10.71578/LK3QWR (Datos para Resiliencia, CC BY 4.0)": "archivos restringidos (requiere login + solicitud de acceso)"
+    },
+    "verification": {
+      "schema": "Campos geo (codigo de unidad), epoca, composicio (7 clases generalizadas), era, periodo: mismo esquema que la copia munivalpo descrita como 'AUTOR: SERNAGEOMIN escala 1:1.000.000, version original 2000, servicio corregido 2010' y que una segunda copia independiente (18935 poligonos, Geo_gen2022_17). No hay campo de descripcion larga de la unidad.",
+      "codes": "149 codigos con la nomenclatura del mapa 1:1M (p.ej. Q3i, Pl3, PPl3, OM2c, MP1c, Kig). Todo codigo con digito 3 tiene composicio='Secuencias volcanicas' salvo EM3 (9 pol., sin atributos).",
+      "coverage": "bounds lon -75.69..-66.415, lat -55.719..-17.499 (dentro de la caja -76..-66 / -56..-17); area total 734283 km2 (EPSG:32719)",
+      "legend_pdf_not_parsed": "Leyenda oficial (https://www.ipgp.fr/~dechabal/Geol-millon.pdf) descargada pero no se pudo extraer texto en este entorno"
+    }
+  },
+  "quality_control": {
+    "Llaima": {
+      "lat": -38.69,
+      "lon": -71.73,
+      "value": 1,
+      "expected": 1,
+      "ok": true,
+      "unit": [
+        [
+          "Q3i",
+          "Secuencias volcanicas",
+          "Cuaternario"
+        ]
+      ]
+    },
+    "Llullaillaco": {
+      "lat": -24.72,
+      "lon": -68.54,
+      "value": 1,
+      "expected": 1,
+      "ok": true,
+      "unit": [
+        [
+          "Q3i",
+          "Secuencias volcanicas",
+          "Cuaternario"
+        ]
+      ]
+    },
+    "Yungay": {
+      "lat": -24.1,
+      "lon": -70.1,
+      "value": 0,
+      "expected": 0,
+      "ok": true,
+      "unit": [
+        [
+          "Qa",
+          "Secuencias sedimentarias",
+          "Pleistoceno Holoceno"
+        ]
+      ]
+    },
+    "Santiago centro": {
+      "lat": -33.45,
+      "lon": -70.67,
+      "value": 0,
+      "expected": 0,
+      "ok": true,
+      "unit": [
+        [
+          "Q1",
+          "Secuencias sedimentarias",
+          "Pleistoceno Holoceno"
+        ]
+      ]
+    },
+    "grid": {
+      "n_cells": 31660,
+      "n_1": 6123,
+      "n_0": 24133,
+      "n_nodata": 1404,
+      "pct_1": 19.34
+    }
+  },
+  "limitations": "Escala 1:1.000.000: unidades generalizadas; una celda de 0,05 grados (~5 km) puede mezclar unidades y se muestrea solo su centro. Copia de terceros no oficial; reemplazar por M61 oficial cuando este disponible. Las celdas nodata (centro en mar/canales) se concentran en fiordos de Aysen y Magallanes."
+}

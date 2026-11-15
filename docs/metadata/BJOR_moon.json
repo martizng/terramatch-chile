@@ -1,0 +1,26 @@
+{
+  "cuerpo": "Luna",
+  "region": "Mare Tranquillitatis",
+  "producto": "SLDEM2015",
+  "instrumentos": "LOLA y SELENE/Kaguya Terrain Camera",
+  "archivo_original": "SLDEM2015_512_00N_30N_000_045.JP2",
+  "identificador": "SLDEM2015_512_00N_30N_000_045",
+  "version": "V2.0",
+  "dataset_id": "LRO-L-LOLA-4-GDR-V1.0",
+  "fecha_creacion": "2015-07-15T00:00:00",
+  "fecha_descarga": "2026-11-15",
+  "resolucion_original": "512 pixeles por grado",
+  "resolucion_recorte_grados": 0.002,
+  "elevacion_unidad": "metros",
+  "referencia_vertical": "radio lunar de 1737400 metros",
+  "sistema_coordenadas": "GEOGCRS[\"GCS_Moon_2000\",\n    DATUM[\"D_Moon_2000\",\n        ELLIPSOID[\"Moon_2000_IAU_IAG\",1737400,0,\n            LENGTHUNIT[\"metre\",1]]],\n    PRIMEM[\"Reference_Meridian\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    USAGE[\n        SCOPE[\"Not known.\"],\n        AREA[\"World.\"],\n        BBOX[-90,-180,90,180]],\n    ID[\"ESRI\",104903]]",
+  "limites_recorte": {
+    "longitud_min": 22.9785,
+    "longitud_max": 23.9707,
+    "latitud_min": 0.1797,
+    "latitud_max": 1.1719
+  },
+  "procesamiento": "Lectura del JP2 original, recorte de Mare Tranquillitatis, conversion de valores almacenados usando factor 0.5 a metros, exportacion a GeoTIFF Float32. Sin remuestreo a la escala comun.",
+  "fuente": "https://pgda.gsfc.nasa.gov/products/54",
+  "url_descarga": "https://imbrium.mit.edu/DATA/SLDEM2015/TILES/JP2/SLDEM2015_512_00N_30N_000_045.JP2"
+}
