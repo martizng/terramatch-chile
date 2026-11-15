@@ -48,7 +48,7 @@ section[data-testid="stSidebar"] [data-baseweb="select"] input {color:#173C52!im
 section[data-testid="stSidebar"] [data-baseweb="radio"] label:hover {background:#1A3F58;}
 section[data-testid="stSidebar"] hr {border-color:#34566D;}
 section[data-testid="stSidebar"] [data-testid="stRadio"] {font-weight:500;}
-.tm-kicker {font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:#168C9A;font-weight:800;margin:0 0 10px;}
+.tm-kicker {font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:#126878;font-weight:800;margin:0 0 10px;}
 .tm-hero {background:radial-gradient(ellipse at 100% 0%,#236A74 0%,transparent 47%),linear-gradient(125deg,#102A43,#1A5165);border-radius:22px;padding:38px 36px;color:white;margin:6px 0 20px;box-shadow:0 10px 24px rgba(13,54,78,.13);}
 .tm-hero h1 {color:#FFF!important;font-size:clamp(2.0rem,4vw,3.5rem);line-height:1.05;margin:6px 0 12px;}
 .tm-hero p {color:#E1F2F5;font-size:1.12rem;line-height:1.55;max-width:750px;margin:0;}
@@ -57,12 +57,12 @@ section[data-testid="stSidebar"] [data-testid="stRadio"] {font-weight:500;}
 .tm-warning {background:#FFF5EB;border-left:4px solid #D89A54;padding:12px 18px;border-radius:8px;color:#65462E;font-size:.91rem;margin:14px 0;}
 .tm-card {background:#FFF;border:1px solid #E1EAEE;padding:18px 19px;border-radius:15px;height:100%;box-shadow:0 3px 9px rgba(30,54,71,.035);}
 .tm-card h3 {font-family:'Outfit',sans-serif;font-size:1.25rem;margin:0 0 8px;color:#173C52;}
-.tm-card p {font-size:.91rem;color:#546975;margin:0;line-height:1.48;}
+.tm-card p {font-size:.91rem;color:#344D5B;margin:0;line-height:1.48;}
 .tm-step {display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center;background:#E8F4F3;border-radius:11px;color:#177C83;font-weight:800;margin-right:10px;}
-.tm-label {font-size:.81rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#507384;}
+.tm-label {font-size:.81rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#365867;}
 .tm-score {font-size:2.7rem;font-weight:800;color:#195B6F;font-family:'Outfit',sans-serif;line-height:1.1;}
-.tm-caption {font-size:.8rem;color:#687E88;line-height:1.45;}
-.tm-foot {margin-top:42px;padding:16px 0;border-top:1px solid #DCE9ED;color:#627C8A;font-size:.8rem;}
+.tm-caption {font-size:.8rem;color:#3F5664;line-height:1.45;}
+.tm-foot {margin-top:42px;padding:16px 0;border-top:1px solid #DCE9ED;color:#415967;font-size:.8rem;}
 div[data-testid="stMetric"] {background:white;border:1px solid #E2EBEF;padding:14px 17px;border-radius:14px;}
 div[data-testid="stMetricLabel"] {font-size:.83rem;}
 div[data-testid="stMetricValue"] {color:#16485C;}
@@ -70,6 +70,28 @@ div.stButton>button[kind="primary"] {background:#146C7A;border-color:#146C7A;col
 div.stButton>button[kind="secondary"] {border-radius:12px;border-color:#B7CDD4;color:#215366;}
 [data-testid="stExpander"] {border-radius:12px;}
 [data-testid="stImage"] img {border-radius:12px;}
+/* Contrast audit (WCAG AA for small text, >= 4.5:1) - main light surfaces only. */
+[data-testid="stMain"] {color:#173847;}
+[data-testid="stMain"] [data-testid="stMarkdownContainer"] > p,
+[data-testid="stMain"] [data-testid="stMarkdownContainer"] > ul,
+[data-testid="stMain"] [data-testid="stMarkdownContainer"] > ol {color:#263E4B;}
+[data-testid="stMain"] [data-testid="stCaptionContainer"] p,
+[data-testid="stMain"] [data-testid="stWidgetLabel"] p,
+[data-testid="stMain"] [data-testid="stMetricLabel"] p {color:#334D5B!important;opacity:1!important;}
+[data-testid="stMain"] [data-testid="stMetricValue"] {color:#123C50!important;}
+[data-testid="stMain"] [data-testid="stDataFrame"] {color:#173847;}
+.tm-kicker {color:#126878;}
+.tm-card p {color:#344D5B;}
+.tm-label {color:#365867;}
+.tm-caption {color:#3F5664;}
+.tm-foot {color:#415967;}
+.tm-note {color:#1F4453;}
+.tm-warning {color:#573D26;}
+/* Sidebar labels remain light on dark; white inputs keep dark foreground. */
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] > p,
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {color:#E3F1F5!important;}
+section[data-testid="stSidebar"] [data-baseweb="select"] [role="combobox"],
+section[data-testid="stSidebar"] [data-baseweb="select"] [role="combobox"] * {color:#173C52!important;}
 </style>''', unsafe_allow_html=True)
 
 PAGES=['home','about','method','explore','sites','validation','data']
@@ -114,6 +136,7 @@ TR={
 'select_site':'Selecciona un sitio para explorar','site_score':'Similitud topográfica','site_pct':'Percentil del piloto','site_cov':'Cobertura de variables','site_conf':'Confianza declarada','terrain_photo':'Visualización del relieve ASTER del sector (no fotografía)',
 'what_score':'¿Qué nos dice este resultado?','comp_title':'Sitio chileno frente a la referencia planetaria','value_site':'Sitio (mediana del área)','value_target':'Perfil planetario (mediana)','metric_scope':'Los indicadores del sitio provienen de las celdas seleccionadas en su polígono/área de estudio.',
 'interpret':'Interpretación preliminar','proxy_warning':'Pajonales y el sector de coladas del Llaima usan polígonos geológicos aproximados: no son delimitaciones definitivas.',
+'llaima_caution':'La mayor similitud del sector de coladas es relativa al cono, NO demuestra terreno lunar equivalente. Su pendiente P90 (~11,8°) supera el intervalo de referencia lunar (~0,9–2,5°).',
 'validation_kicker':'EVIDENCIA Y RESULTADOS','validation_title':'Lo que encontramos — y lo que todavía no sabemos',
 'validation_intro':'Las pruebas de coherencia no fueron todas exitosas. Mostrarlas también es parte del rigor: los resultados no se ajustaron para forzar conclusiones.',
 'mars_results':'Pruebas del perfil marciano','moon_results':'Prueba del perfil lunar','pass':'Cumple','fail':'No cumple','not_eval':'Pendiente',
@@ -123,10 +146,14 @@ TR={
 'data_kicker':'TRANSPARENCIA','data_title':'Datos abiertos, alcance claro y limitaciones visibles',
 'data_sources':'Fuentes principales','limits':'Limitaciones que debes conocer','limits1':'Cobertura restringida: cuatro teselas ASTER y 1.262 celdas con topografía, no un muestreo nacional exhaustivo.',
 'limits2':'La procedencia de píxeles ASTER (archivos NUM) aún no se integra explícitamente al cálculo en v0.7.',
+'aster_quality_title':'Control adicional de calidad ASTER',
+'aster_quality_body':'Según el control de calidad comunicado por el equipo, en las cuatro áreas piloto revisadas el 100 % de los píxeles analizados proviene de mediciones estéreo ASTER (11–29 escenas) y no presenta relleno. Esta verificación adicional fue comunicada por el equipo y aún no figura en AFIRMACIONES_Y_EVIDENCIA.md; debe archivarse su informe NUM para considerarla plenamente respaldada. Las máscaras NUM todavía no se aplican explícitamente dentro del motor v0.7. No equivale a certificar todas las teselas ni todo Chile.',
 'limits3':'El filtro geológico lunar utiliza una fuente derivada y una leyenda a escala regional que necesitan confirmación.',
 'limits4':'Dos delimitaciones de sitios son proxies geológicos: Pajonales y las coladas del Llaima.',
 'limits5':'La validación del motor y la reproducibilidad de las fuentes planetarias requieren completar la auditoría independiente.',
 'limits6':'No se infiere habitabilidad, equivalencia geológica completa, rutas de vehículos ni seguridad de aterrizaje.',
+'limits7':'El perfil de Elysium Planitia usa solo 5 de 25 ventanas MOLA con al menos 50 % de observaciones directas; aproximadamente 69 % del recorte no tiene medición directa y la interpretación debe reconocer el uso de valores interpolados.',
+'limits8':'El informe científico advierte que IMERG puede sobrestimar la precipitación en el desierto. Como sensibilidad, CR2MET produjo percentiles similares para Yungay y Pajonales; esto no elimina la incertidumbre del filtro de aridez.',
 'data_status':'¿Qué significa cada estado?','scored_label':'Con puntaje','outside_label':'Fuera del filtro','insuff_label':'Información insuficiente','nofilter_label':'Sin información del filtro',
 'data_quality':'Consulta los archivos, resultados y método reproducible desde GitHub.',
 'footer':'Desarrollado por Team Joseadores · Universidad de La Frontera, Temuco, Chile · NASA Space Apps Challenge 2026 · Prototipo de investigación (no afiliación ni aval de NASA).',
@@ -218,6 +245,7 @@ TR={
 'select_site':'Choose a site','site_score':'Terrain similarity','site_pct':'Pilot percentile','site_cov':'Variable coverage','site_conf':'Reported confidence','terrain_photo':'ASTER shaded terrain rendering (not a photograph)',
 'what_score':'What does this result tell us?','comp_title':'Chilean site vs planetary reference','value_site':'Site (area median)','value_target':'Planetary target (median)','metric_scope':'Site indicators summarize selected analytical cells within the study area.',
 'interpret':'Preliminary interpretation','proxy_warning':'Pajonales and the Llaima lava-flow sector use approximate geological polygons and are not final field boundaries.',
+'llaima_caution':'The lava-flow sector only scores higher relative to the cone; it is NOT equivalent to lunar terrain. Its P90 slope (~11.8°) exceeds the lunar reference interval (~0.9–2.5°).',
 'validation_kicker':'EVIDENCE & RESULTS','validation_title':'What we found — and what remains uncertain',
 'validation_intro':'Not all coherence checks passed. Reporting them honestly is part of the method; scores were not altered to force a conclusion.',
 'mars_results':'Martian reference checks','moon_results':'Lunar reference check','pass':'Passed','fail':'Not met','not_eval':'Pending',
@@ -227,10 +255,14 @@ TR={
 'data_kicker':'TRANSPARENCY','data_title':'Open data, clearly stated scope and limitations',
 'data_sources':'Main sources','limits':'Important limitations','limits1':'Limited coverage: four ASTER tiles and 1,262 cells with terrain data, not an exhaustive national sample.',
 'limits2':'ASTER NUM pixel-provenance masks are not yet explicitly incorporated into scoring in v0.7.',
+'aster_quality_title':'Additional ASTER data-quality check',
+'aster_quality_body':'According to the quality check reported by the team, all pixels assessed in the four reviewed pilot areas originate from ASTER stereo measurements (11–29 scenes), with no filling. This additional finding was reported by the team and is not yet documented in AFIRMACIONES_Y_EVIDENCIA.md; the NUM quality report should be archived before treating it as fully verified. NUM masks are not yet explicitly applied within the v0.7 scoring engine. This is not a quality certification for all four tiles or for Chile as a whole.',
 'limits3':'The lunar volcanic-unit filter relies on a derived regional geological layer requiring source and legend verification.',
 'limits4':'Two site outlines are geological proxies: Pajonales and the mapped Llaima lava-flow sector.',
 'limits5':'Independent end-to-end validation of the engine and planetary source reconstruction remains incomplete.',
 'limits6':'No claims of habitability, full geological equivalence, vehicle routes or landing-site safety are made.',
+'limits7':'The Elysium Planitia reference uses only 5 of 25 MOLA windows with at least 50% direct observations; approximately 69% of the crop lacks direct measurements, so interpolation must be acknowledged.',
+'limits8':'The scientific report warns that IMERG may overestimate desert rainfall. A CR2MET sensitivity analysis yielded similar percentiles for Yungay and Pajonales, but this does not eliminate uncertainty in aridity screening.',
 'data_status':'What do the status flags mean?','scored_label':'Scored','outside_label':'Outside filter','insuff_label':'Insufficient information','nofilter_label':'Missing filter information',
 'data_quality':'Inspect the scientific files, results and reproducible method on GitHub.',
 'footer':'Built by Team Joseadores · Universidad de La Frontera, Temuco, Chile · NASA Space Apps Challenge 2026 · Research prototype (not NASA-endorsed).',
@@ -535,6 +567,7 @@ elif selection=='sites':
         b.metric(t['site_conf'],translated_confidence(site['confidence']))
         note(SITE_EXPLANATIONS.get(selected,{}).get(locale,''))
     if selected in ['pajonales','llaima_flows']:note(t['proxy_warning'],warn=True)
+    if selected=='llaima_flows':note(t['llaima_caution'],warn=True)
     st.subheader(t['comp_title'])
     col_defs=[('slope_p90_deg',t['slope'],'°','slope_p90_deg_value'),
               ('relief_m',t['relief'],'m','relief_m_value'),
@@ -588,6 +621,7 @@ elif selection=='validation':
         cone=SITES[SITES['site'].eq('llaima_cone')].iloc[0]
         st.metric(t['site_comparison'],f'{float(flows["S"]):.1f} vs {float(cone["S"]):.1f} /100')
         st.caption(t['preliminary_geometry'])
+        note(t['llaima_caution'],warn=True)
     note(t['validation_precision'],warn=True)
 
 # ------------------- OPEN DATA & LIMITATIONS -------------------
@@ -606,7 +640,9 @@ elif selection=='data':
             c1.markdown(f'**{title}** · {sub}')
             c2.markdown(f'[{t["source_link"]} ↗]({link})')
     st.subheader(t['limits'])
-    for i in range(1,7):st.markdown(f'**{i}.** {t["limits"+str(i)]}')
+    for i in range(1,9):st.markdown(f'**{i}.** {t["limits"+str(i)]}')
+    st.subheader(t['aster_quality_title'])
+    note(t['aster_quality_body'])
     st.subheader(t['data_status'])
     statuses=[('scored_label','✅',('Con información suficiente y filtro aprobado.','Sufficient data and passes screening.')),
               ('outside_label','🚫',('No cumple el filtro; no se calcula similitud.','Fails the screening rule; no score is computed.')),
