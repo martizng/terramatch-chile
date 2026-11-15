@@ -136,83 +136,183 @@ def iter_rings(geometry: dict) -> Iterable[list[list[float]]]:
                 yield ring
 
 
+REGION_BOUNDS = {
+    'all': ((-76.5, -65.5), (-56.2, -17.0)),
+    'north': ((-70.55, -68.05), (-25.9, -23.3)),
+    'south': ((-72.45, -71.05), (-39.22, -38.15)),
+}
+
+
+def _within_bounds(frame: pd.DataFrame, bounds: tuple) -> pd.DataFrame:
+    """Clip displayed points to the chosen map window; do not change scores."""
+    (xmin, xmax), (ymin, ymax) = bounds
+    return frame.loc[
+        frame['lon_c'].between(xmin, xmax) & frame['lat_c'].between(ymin, ymax)
+    ].copy()
+
+
+def _plot_llaima_boundaries(fig: go.Figure, *, locale: str) -> None:
+    """Show sourced study footprints, explicitly as preliminary boundaries.
+
+    The geological lava-flow proxy can have holes, so show lines only and never
+    incorrectly fill an excluded hole as if it were part of the candidate.
+    """
+    specs = [
+        ('llaima_flows', '#156F85',
+         'Sector de coladas (proxy geológico)' if locale == 'es' else 'Lava-flow sector (geological proxy)'),
+        ('llaima_cone', '#D97339',
+         'Cono (referencia de 3 km)' if locale == 'es' else 'Cone (3 km reference)'),
+    ]
+    for filename, color, label in specs:
+        path = ROOT / 'data' / 'chile' / 'sites' / (filename + '.geojson')
+        if not path.is_file():
+            continue
+        with path.open(encoding='utf-8') as handle:
+            collection = json.load(handle)
+        xs, ys = [], []
+        for feature in collection.get('features', []):
+            geometry = feature.get('geometry') or {}
+            if geometry.get('type') == 'Polygon':
+                polygons = [geometry.get('coordinates', [])]
+            elif geometry.get('type') == 'MultiPolygon':
+                polygons = geometry.get('coordinates', [])
+            else:
+                continue
+            for polygon in polygons:
+                # Exterior and interior rings are outlined to preserve the area exclusions.
+                for ring in polygon:
+                    xs.extend([coord[0] for coord in ring] + [None])
+                    ys.extend([coord[1] for coord in ring] + [None])
+        if xs:
+            fig.add_trace(go.Scatter(
+                x=xs, y=ys, mode='lines',
+                line={'width': 3 if filename == 'llaima_cone' else 2.6, 'color': color},
+                name=label, showlegend=True,
+                hovertemplate=label + '<extra></extra>',
+            ))
+
+
 def make_terrain_map(df: pd.DataFrame, sites: pd.DataFrame, *, mode='score', region='all',
                      min_score=0.0, show_sites=True, locale='es') -> go.Figure:
-    """Responsive, interactive lat/lon plot with a local (no tile server) Chile outline.
+    """Interactive map restricted to the selected geography.
 
-    `score` mode: only real scored cells receive a numeric color.
-    `coverage` mode: only cells with ASTER terrain metrics are shown, categorized by status.
+    Only scored cells receive a numeric color. No unscored cell is assigned a
+    similarity value. Region selection affects map extent AND displayed points.
     """
     labels = MAP_LABELS[locale]
+    bounds = REGION_BOUNDS.get(region, REGION_BOUNDS['all'])
     path = VISUALS / 'chile_outline.geojson'
-    with open(path, encoding='utf-8') as handle:
+    with path.open(encoding='utf-8') as handle:
         boundary = json.load(handle)['features'][0]['geometry']
     fig = go.Figure()
     xs, ys = [], []
     for ring in iter_rings(boundary):
         xs.extend([xy[0] for xy in ring] + [None])
         ys.extend([xy[1] for xy in ring] + [None])
-    fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', fill='toself', fillcolor='#E5EFF1',
-                             line={'color': '#90ADB5', 'width': 1.05}, hoverinfo='skip',
-                             name='Chile', showlegend=False))
+    fig.add_trace(go.Scatter(
+        x=xs, y=ys, mode='lines', fill='toself', fillcolor='#E5EFF1',
+        line={'color': '#90ADB5', 'width': 1.05}, hoverinfo='skip',
+        name='Chile', showlegend=False,
+    ))
+
     if mode == 'score':
-        rows = scored_cells(df)
-        rows = rows[rows['S'] >= min_score]
-        if len(rows):
+        rows = _within_bounds(scored_cells(df), bounds)
+        rows = rows.loc[rows['S'] >= min_score]
+        if not rows.empty:
             fig.add_trace(go.Scatter(
                 x=rows['lon_c'], y=rows['lat_c'], mode='markers',
-                marker={'size': 8, 'opacity': .85, 'color': rows['S'],
+                marker={'size': 9 if region != 'all' else 8, 'opacity': .85, 'color': rows['S'],
                         'colorscale': [[0, '#E89A5B'], [.35, '#E7CF80'], [.65, '#67BFC4'], [1, '#19566F']],
-                        'cmin': 0, 'cmax': 100, 'colorbar': {'title': labels['score'] + ' /100', 'thickness': 12, 'len': .58}},
+                        'cmin': 0, 'cmax': 100,
+                        'colorbar': {'title': labels['score'] + ' /100', 'thickness': 12, 'len': .65}},
                 customdata=pd.DataFrame({
-                    'cell_id':rows['cell_id'].astype(str),
-                    'coverage':rows['coverage']*100,
-                    'confidence':rows['confidence'].map(lambda x: CONFIDENCE_LABELS[locale].get(x,str(x))),
+                    'cell_id': rows['cell_id'].astype(str),
+                    'coverage': rows['coverage'] * 100,
+                    'confidence': rows['confidence'].map(
+                        lambda x: CONFIDENCE_LABELS[locale].get(x, str(x))),
                 }).to_numpy(),
-                hovertemplate='<b>'+labels['cell']+' %{customdata[0]}</b><br>'
-                + labels['score']+': %{marker.color:.1f}/100<br>'
-                + labels['coverage']+': %{customdata[1]:.0f}%<br>'
-                + labels['confidence']+': %{customdata[2]}<extra></extra>',
-                showlegend=False, name=labels['score']))
+                hovertemplate='<b>' + labels['cell'] + ' %{customdata[0]}</b><br>'
+                + labels['score'] + ': %{marker.color:.1f}/100<br>'
+                + labels['coverage'] + ': %{customdata[1]:.0f}%<br>'
+                + labels['confidence'] + ': %{customdata[2]}<extra></extra>',
+                showlegend=False, name=labels['score'],
+            ))
     else:
-        # Important: 30k grid positions without ASTER are deliberately NOT plotted.
-        rows = astercells(df)
-        palette = [('scored', '#147E8C'), ('outside_filter','#C89A56'),
-                   ('insufficient_data','#8A94A6'), ('no_filter_data','#9F74AE')]
-        # Status identifiers are internal; users see local-language labels.
-        status_labels=MAP_LABELS[locale]
-        for key,color in palette:
-            sub=rows[rows['status'].eq(key)]
+        # 30k locations without topography must not be plotted as low similarity.
+        rows = _within_bounds(astercells(df), bounds)
+        palette = [('scored', '#147E8C'), ('outside_filter', '#C89A56'),
+                   ('insufficient_data', '#8A94A6'), ('no_filter_data', '#9F74AE')]
+        for key, color in palette:
+            sub = rows.loc[rows['status'].eq(key)]
             if not sub.empty:
-                fig.add_trace(go.Scatter(x=sub['lon_c'], y=sub['lat_c'], mode='markers',
-                    marker={'size':8,'color':color,'opacity':.85}, name=f'{status_labels[key]} ({len(sub):,})',
-                    customdata=sub[['cell_id','valid_frac']].to_numpy(),
-                    hovertemplate='<b>'+labels['cell']+' %{customdata[0]}</b><br>'+labels['valid_fraction']+': %{customdata[1]:.0%}<extra></extra>'))
+                fig.add_trace(go.Scatter(
+                    x=sub['lon_c'], y=sub['lat_c'], mode='markers',
+                    marker={'size': 9 if region != 'all' else 8, 'color': color, 'opacity': .85},
+                    name=f'{labels[key]} ({len(sub):,})',
+                    customdata=sub[['cell_id', 'valid_frac']].to_numpy(),
+                    hovertemplate='<b>' + labels['cell'] + ' %{customdata[0]}</b><br>'
+                    + labels['valid_fraction'] + ': %{customdata[1]:.0%}<extra></extra>',
+                ))
+
     if show_sites:
-        display_names=[SITE_NAME_TRANSLATIONS.get(str(site),{}).get(locale,str(name))
-                       for site,name in zip(sites['site'],sites['name'])]
-        site_customdata=pd.DataFrame({
-            'S':sites['S'].map(lambda x: f'{float(x):.1f}' if pd.notna(x) else '—'),
-            'percentile':sites['percentile'].map(lambda x: f'{float(x):.1f}' if pd.notna(x) else '—'),
-            'confidence':sites['confidence'].map(lambda x: CONFIDENCE_LABELS[locale].get(x,str(x))),
-        }).to_numpy()
-        fig.add_trace(go.Scatter(x=sites['ref_lon'], y=sites['ref_lat'], mode='markers+text',
-            text=display_names,textposition='top right',textfont={'size':10,'color':'#17354F'},
-            marker={'size':14,'symbol':'diamond','color':'#E86B4D','line':{'width':2,'color':'#FFFFFF'}},
-            customdata=site_customdata,
-            hovertemplate='<b>%{text}</b><br>'+labels['score']+': %{customdata[0]}/100<br>'
-            +labels['percentile']+': %{customdata[1]}<br>'
-            +labels['confidence']+': %{customdata[2]}<extra></extra>',
-            showlegend=True,name=labels['sites']))
-    bounds={'all':((-76.5,-65.5),(-56.2,-17)),
-            'north':((-71.2,-67.1),(-26.8,-22.4)),
-            'south':((-73.4,-70.3),(-40.2,-37.3))}
-    xb,yb=bounds.get(region,bounds['all'])
-    fig.update_xaxes(range=xb,visible=False,showgrid=False,zeroline=False)
-    fig.update_yaxes(range=yb,visible=False,showgrid=False,zeroline=False,scaleanchor='x',scaleratio=1)
-    fig.update_layout(height=590 if region=='all' else 520, margin={'l':5,'r':5,'t':6,'b':5},
-        paper_bgcolor='#F6FAFB',plot_bgcolor='#F6FAFB',
-        legend={'orientation':'h','yanchor':'top','y':-0.03,'x':0},
-        hoverlabel={'bgcolor':'#123A4B','font':{'color':'white','size':12}},
-        dragmode='zoom',font={'family':'Arial,sans-serif','color':'#183849'})
+        (xmin, xmax), (ymin, ymax) = bounds
+        visible = sites.loc[
+            sites['ref_lon'].between(xmin, xmax) & sites['ref_lat'].between(ymin, ymax)
+        ].copy()
+        # Cone and flow study polygons share one reference coordinate, so drawing
+        # coincident text markers would hide the very sites the user is seeking.
+        if region == 'south' and {'llaima_flows', 'llaima_cone'}.intersection(set(visible['site'])):
+            _plot_llaima_boundaries(fig, locale=locale)
+            fig.add_trace(go.Scatter(
+                x=[-71.729], y=[-38.692], mode='markers',
+                marker={'size': 13, 'symbol': 'diamond', 'color': '#D97339',
+                        'line': {'color': '#FFFFFF', 'width': 2}},
+                name='Volcán Llaima' if locale == 'es' else 'Llaima volcano',
+                hovertemplate='Volcán Llaima' if locale == 'es' else 'Llaima volcano',
+                showlegend=False,
+            ))
+            visible = visible.loc[~visible['site'].isin(['llaima_flows', 'llaima_cone'])]
+        elif region == 'all':
+            # At Chile-wide scale these two reference pins overlap exactly.
+            visible = visible.drop_duplicates(subset=['ref_lon', 'ref_lat'])
+        if not visible.empty:
+            display_names = [
+                SITE_NAME_TRANSLATIONS.get(str(site), {}).get(locale, str(name))
+                for site, name in zip(visible['site'], visible['name'])
+            ]
+            site_customdata = pd.DataFrame({
+                'S': visible['S'].map(lambda x: f'{float(x):.1f}' if pd.notna(x) else '—'),
+                'percentile': visible['percentile'].map(
+                    lambda x: f'{float(x):.1f}' if pd.notna(x) else '—'),
+                'confidence': visible['confidence'].map(
+                    lambda x: CONFIDENCE_LABELS[locale].get(x, str(x))),
+            }).to_numpy()
+            fig.add_trace(go.Scatter(
+                x=visible['ref_lon'], y=visible['ref_lat'],
+                mode='markers' if region == 'all' else 'markers+text',
+                text=display_names, textposition='top right',
+                textfont={'size': 11, 'color': '#17354F'},
+                marker={'size': 14, 'symbol': 'diamond', 'color': '#E86B4D',
+                        'line': {'width': 2, 'color': '#FFFFFF'}},
+                customdata=site_customdata,
+                hovertemplate='<b>%{text}</b><br>' + labels['score'] + ': %{customdata[0]}/100<br>'
+                + labels['percentile'] + ': %{customdata[1]}<br>'
+                + labels['confidence'] + ': %{customdata[2]}<extra></extra>',
+                showlegend=True, name=labels['sites'],
+            ))
+
+    xb, yb = bounds
+    # Avoid scaleanchor here: it may expand a requested South zoom to fit the
+    # full Chile outline, making Llaima invisible and Northern pins appear.
+    fig.update_xaxes(range=list(xb), autorange=False, visible=False, showgrid=False, zeroline=False)
+    fig.update_yaxes(range=list(yb), autorange=False, visible=False, showgrid=False, zeroline=False)
+    fig.update_layout(
+        height=650 if region == 'all' else 580,
+        margin={'l': 8, 'r': 18, 't': 8, 'b': 40},
+        paper_bgcolor='#F6FAFB', plot_bgcolor='#F6FAFB',
+        legend={'orientation': 'h', 'yanchor': 'top', 'y': -.02, 'x': 0,
+                'font': {'size': 12}},
+        hoverlabel={'bgcolor': '#123A4B', 'font': {'color': 'white', 'size': 12}},
+        dragmode='zoom', font={'family': 'Arial,sans-serif', 'color': '#183849'},
+    )
     return fig

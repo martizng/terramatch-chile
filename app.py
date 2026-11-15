@@ -511,17 +511,22 @@ elif selection=='explore':
     with c1:
         view=st.selectbox(t['map_mode'],['score','coverage'],format_func=lambda v:t['score_view'] if v=='score' else t['coverage_view'])
     with c2:
-        region=st.selectbox(t['region'],['all','north','south'],format_func=lambda v:t[v],index=1 if profile=='mars' else 2)
+        region=st.selectbox(t['region'],['all','north'] if profile=='mars' else ['all','south'],format_func=lambda v:t[v],index=1)
     with c3:
         threshold=st.slider(t['min_score'],0,100,0,5,disabled=view!='score')
     show=st.checkbox(t['show_sites'],value=True)
-    if view=='score':
-        map_sites=SITES[SITES['profile'].eq('mars_elysium' if profile=='mars' else 'moon_tranquillitatis')]
-    else:
-        map_sites=SITES[SITES['profile'].eq('mars_elysium' if profile=='mars' else 'moon_tranquillitatis')]
+    # Show only sites belonging to the selected planetary profile.
+    map_sites=SITES[SITES['profile'].eq('mars_elysium' if profile=='mars' else 'moon_tranquillitatis')]
     fig=make_terrain_map(df,map_sites,mode=view,region=region,min_score=threshold,show_sites=show,locale=locale)
     st.plotly_chart(fig,use_container_width=True,config={'displaylogo':False,'modeBarButtonsToRemove':['lasso2d','select2d']})
     st.caption(t['map_hint'])
+    if region == 'south':
+        st.caption('Los contornos azul y naranja son delimitaciones preliminares de coladas y cono; no representan una equivalencia lunar.' if locale == 'es' else 'Blue and orange outlines are preliminary lava-flow and cone study footprints; they do not imply lunar equivalence.')
+        vis1, vis2 = st.columns(2, gap='medium')
+        with vis1:
+            img(VISUALS/'llaima_flows_aster.jpg', 'Sector de coladas · relieve ASTER (no fotografía)' if locale == 'es' else 'Lava-flow sector · ASTER terrain (not a photograph)')
+        with vis2:
+            img(VISUALS/'llaima_cone_aster.jpg', 'Cono del Llaima · relieve ASTER (no fotografía)' if locale == 'es' else 'Llaima cone · ASTER terrain (not a photograph)')
     note(t['filter_note'],warn=True)
     with st.expander(t['legend']):
         st.markdown(f'**{t["score_view"]}:** {t["legend_score"]}')
