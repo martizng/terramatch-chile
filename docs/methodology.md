@@ -57,14 +57,23 @@ Los sitios se utilizan para comprobar la coherencia del método y explorar candi
 | Salar de Pajonales | Marte | Benchmark de depósitos salinos y evaporíticos | Contorno del salar digitalizado sobre imagen satelital; referencia 25,144° S; 68,820° W |
 | Llaima, sector de coladas | Luna | Candidato exploratorio | Coladas del mapa geológico de SERNAGEOMIN dentro de 15 km de la cumbre; excluir píxeles con pendiente >15° |
 | Llaima, cono | Luna | Contraste interno | Círculo de 3 km de radio alrededor de 38,692° S; 71,729° W |
-| Llullaillaco | Marte | Control negativo | Círculo de 8 km de radio alrededor de 24,720° S; 68,537° W |
+| Llullaillaco | Marte | Control negativo: sector central de alta montaña | Círculo de 8 km de radio alrededor de 24,720° S; 68,537° W |
 
 Los polígonos y geometrías definitivas se guardan en el repositorio con identificadores estables para que el análisis sea reproducible. Las coordenadas son referencias iniciales y deben contrastarse con las fuentes cartográficas utilizadas al delimitar cada polígono.
 
+En el caso de Llullaillaco, la delimitación de 8 km de radio representa un sector central del entorno volcánico y de alta montaña, no necesariamente la totalidad del edificio volcánico. Por ello, los resultados deben interpretarse como correspondientes al área de control delimitada y no extrapolarse a todo el volcán.
+
 ### 3.1 Benchmarks y candidatos exploratorios
 
-- **Benchmark conocido:** sitio tratado como análogo en el inventario USGS Known Terrestrial Analog Sites for Planetary Science (Hunter, 2020; DOI [10.5066/P9J72921](https://doi.org/10.5066/P9J72921)) o en literatura científica revisada por pares.
-- **Candidato exploratorio:** sitio cuya combinación de características resulta de interés, pero que requiere validación científica adicional.
+Para evitar atribuir una condición de análogo sin respaldo suficiente, TerraMatch distingue entre sitios de referencia utilizados para evaluar el comportamiento del método y sitios cuya posible utilidad como análogos todavía debe investigarse.
+
+- **Sitio de referencia:** lugar seleccionado por presentar características ambientales o superficiales relevantes para evaluar la coherencia del método. Su selección no implica que exista una validación científica previa como análogo planetario.
+- **Candidato exploratorio:** sitio cuya combinación de características resulta de interés para la comparación, pero que requiere validación científica adicional.
+- **Análogo terrestre documentado:** sitio cuya pertinencia como análogo para investigación planetaria se encuentra respaldada por un inventario especializado o literatura científica revisada por pares.
+
+Yungay y Salar de Pajonales se utilizan en el MVP como sitios de referencia para evaluar la respuesta del modelo frente a ambientes áridos y depósitos salinos o evaporíticos, respectivamente. Su condición de análogos terrestres documentados deberá comprobarse mediante fuentes específicas para cada sitio antes de atribuirles esa categoría.
+
+El inventario USGS Known Terrestrial Analog Sites for Planetary Science (Hunter, 2020; DOI [10.5066/P9J72921](https://doi.org/10.5066/P9J72921)) constituye una fuente de consulta para identificar antecedentes de análogos terrestres. También se deben revisar publicaciones científicas y antecedentes geológicos específicos de cada lugar.
 
 La ausencia de un sitio en un inventario no demuestra que sea nuevo. Se debe utilizar la expresión “no documentado en las fuentes revisadas”, no “análogo nuevo”.
 
@@ -89,7 +98,8 @@ La elevación absoluta se puede informar como contexto, pero no entra al puntaje
 **Perfil Marte — aridez**
 
 - Fuente: GPM IMERG Final V07 mensual (GPM_3IMERGM).
-- Se utiliza la climatología 2001–2024 y se calcula la precipitación anual media.
+- Se utiliza el período 2001–2024 para construir una climatología de precipitación.
+- Primero se calcula la precipitación media mensual de cada mes calendario considerando los años disponibles del período. Luego, se suman los doce valores medios mensuales para estimar la precipitación anual media climatológica.
 - Solo se consideran para el ranking las celdas con precipitación anual media ≤250 mm.
 - Las celdas que no cumplen se etiquetan como `fuera_del_filtro`, no como baja similitud.
 - La resolución de IMERG es de 0,1° (aprox. 10 km); por tanto, el filtro es regional respecto de la grilla nacional de 0,05° y esa limitación debe informarse.
@@ -152,51 +162,66 @@ Para cada ventana de 5 km y para cada sitio se calculan las estadísticas necesa
 
 ### 6.1 Rango del perfil y distancia por variable
 
-Para cada variable (i), el perfil planetario tiene un rango de referencia ([bajo_i, alto_i]). La distancia normalizada de un valor terrestre (x_i) se define como:
+Para cada variable \(i\), el perfil planetario tiene un rango de referencia \([bajo_i, alto_i]\). La distancia normalizada de un valor terrestre \(x_i\) se define como:
 
-[
-d_i = \frac{\max(bajo_i-x_i,\ 0,\ x_i-alto_i)}{IQR_i}
-]
+\[
+d_i = \frac{\max(bajo_i-x_i,\ 0,\ x_i-alto_i)}{s_i}
+\]
 
-La distancia es cero cuando el valor terrestre se encuentra dentro del rango del perfil. Si queda fuera, se mide la distancia al límite más cercano y se normaliza por el rango intercuartílico (IQR) de esa variable en Chile. Si el IQR es cero, se utiliza la desviación estándar como escala alternativa.
+Donde \(s_i\) corresponde a la escala de normalización de la variable. Se define inicialmente como el rango intercuartílico (IQR) de esa variable en Chile:
 
-El relieve local se transforma mediante (log(1+x)) antes del cálculo, debido a su distribución asimétrica. La misma transformación se aplica de forma consistente al perfil y a los valores terrestres.
+\[
+IQR_i = Q_{75,i} - Q_{25,i}
+\]
+
+La distancia es cero cuando el valor terrestre se encuentra dentro del rango del perfil. Si queda fuera, se mide la distancia al límite más cercano y se normaliza por la variabilidad de esa variable en Chile.
+
+Para evitar divisiones por cero, se aplica el siguiente criterio:
+
+1. Si el IQR es mayor que cero, se utiliza como escala de normalización.
+2. Si el IQR es igual a cero y la desviación estándar es mayor que cero, se utiliza la desviación estándar.
+3. Si tanto el IQR como la desviación estándar son cero, la variable se considera constante y no informativa para esa comparación. Se excluye del cálculo de distancia y de la cobertura correspondiente.
+
+El relieve local se transforma mediante \(\log(1+x)\) antes del cálculo, debido a su distribución asimétrica. La misma transformación se aplica de forma consistente al perfil y a los valores terrestres.
 
 ### 6.2 Distancia y similitud agregadas
 
-Para cada variable se define (m_i=1) si existe un dato válido y (m_i=0) si falta. La distancia topográfica agregada se calcula como:
+Para cada variable se define \(m_i=1\) si existe un dato válido y utilizable, y \(m_i=0\) si falta o no puede utilizarse. La distancia topográfica agregada se calcula como:
 
-[
+\[
 D_{top} = \frac{\sum_i w_i m_i d_i}{\sum_i w_i m_i}
-]
+\]
 
 La similitud topográfica se calcula como:
 
-[
+\[
 S_{top} = 100\cdot e^{-D_{top}}
-]
+\]
 
 En el MVP las tres variables tienen el mismo peso inicial:
 
-[
+\[
 w_1=w_2=w_3=\frac{1}{3}
-]
+\]
 
-Como el puntaje incluye solo la dimensión topográfica, la similitud global del MVP coincide con (S_{top}). La aplicación debe mostrar tanto el puntaje global como la distancia/similitud de cada variable para que el resultado sea explicable.
+Como el puntaje incluye solo la dimensión topográfica, la similitud global del MVP coincide con \(S_{top}\). La aplicación debe mostrar tanto el puntaje global como la distancia/similitud de cada variable para que el resultado sea explicable.
 
-Esta transformación es una decisión metodológica del proyecto, no un estándar científico universal. Se debe documentar y evaluar su comportamiento con los benchmarks y controles definidos.
+Esta transformación es una decisión metodológica del proyecto, no un estándar científico universal. Se debe documentar y evaluar su comportamiento con los sitios de referencia y controles definidos.
 
 ### 6.3 Datos faltantes y cobertura
 
 Un dato faltante nunca se reemplaza por cero. La cobertura se calcula como:
 
-[
+\[
 Cobertura = \frac{\sum_i w_i m_i}{\sum_i w_i}
-]
+\]
 
-Si la cobertura es menor que 0,5 —es decir, si falta más de una de las tres variables—, la celda se etiqueta como `información insuficiente` y no se presenta como un candidato con puntaje comparable.
+Las variables excluidas por presentar variabilidad nula tanto en el IQR como en la desviación estándar no se consideran disponibles para esa comparación. Por lo tanto, tampoco aportan al numerador ni al denominador de la cobertura.
+
+Si la cobertura es menor que 0,5 —es decir, si falta más de una de las tres variables originalmente consideradas—, la celda se etiqueta como `información insuficiente` y no se presenta como un candidato con puntaje comparable.
 
 Los estados de una celda deben distinguir al menos:
+
 - `fuera_del_filtro`: no cumple el filtro previo del perfil.
 - `información insuficiente`: no alcanza la cobertura mínima.
 - Resultado calculado: tiene datos suficientes y pasó el filtro.
@@ -237,7 +262,7 @@ La validación combina consistencia cuantitativa, revisión cartográfica y ante
 **Perfil marciano — Elysium Planitia**
 
 - Yungay y Salar de Pajonales deben ubicarse en el percentil 75 o superior entre las celdas chilenas que pasan el filtro de aridez.
-- El edificio del volcán Llullaillaco debe ubicarse en el percentil 25 o inferior.
+- El sector central delimitado de Llullaillaco, utilizado como control negativo, se espera que se ubique en el percentil 25 o inferior.
 - También se utiliza como control sistemático el 5 % de las celdas con mayor pendiente P90 entre las que pasan el filtro.
 
 Estas pruebas evalúan si el método distingue superficies áridas de bajo relieve frente a terrenos empinados. No demuestran por sí solas una analogía geológica.
