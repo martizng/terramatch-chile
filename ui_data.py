@@ -33,6 +33,34 @@ SITE_IMAGES = {
     'llaima_flows': 'llaima_flows_aster.jpg',
     'llaima_cone': 'llaima_cone_aster.jpg',
 }
+SITE_NAME_TRANSLATIONS = {
+    'yungay': {'es': 'Yungay', 'en': 'Yungay'},
+    'pajonales': {'es': 'Salar de Pajonales', 'en': 'Salar de Pajonales'},
+    'llullaillaco': {'es': 'Llullaillaco', 'en': 'Llullaillaco'},
+    'llaima_flows': {'es': 'Llaima, sector de coladas', 'en': 'Llaima lava-flow sector'},
+    'llaima_cone': {'es': 'Llaima, cono', 'en': 'Llaima volcanic cone'},
+}
+
+MAP_LABELS = {
+    'es': {
+        'cell':'Celda', 'score':'Puntaje', 'coverage':'Cobertura', 'confidence':'Confianza',
+        'valid_fraction':'Cobertura ASTER', 'percentile':'Percentil del piloto',
+        'sites':'Sitios piloto', 'scored':'Con puntaje', 'outside_filter':'Fuera del filtro',
+        'insufficient_data':'Información insuficiente', 'no_filter_data':'Sin información del filtro',
+    },
+    'en': {
+        'cell':'Cell', 'score':'Score', 'coverage':'Coverage', 'confidence':'Confidence',
+        'valid_fraction':'ASTER coverage', 'percentile':'Pilot percentile',
+        'sites':'Pilot sites', 'scored':'Scored', 'outside_filter':'Outside filter',
+        'insufficient_data':'Insufficient information', 'no_filter_data':'Missing filter information',
+    },
+}
+
+CONFIDENCE_LABELS = {
+    'es': {'Baja':'Baja', 'Media':'Media', 'Alta':'Alta'},
+    'en': {'Baja':'Low', 'Media':'Medium', 'Alta':'High'},
+}
+
 SITE_EXPLANATIONS = {
     'yungay': {
         'es': 'Referencia de aridez para el perfil marciano. Su percentil topográfico no alcanzó el umbral previsto; la aridez y el relieve no son lo mismo.',
@@ -115,6 +143,7 @@ def make_terrain_map(df: pd.DataFrame, sites: pd.DataFrame, *, mode='score', reg
     `score` mode: only real scored cells receive a numeric color.
     `coverage` mode: only cells with ASTER terrain metrics are shown, categorized by status.
     """
+    labels = MAP_LABELS[locale]
     path = VISUALS / 'chile_outline.geojson'
     with open(path, encoding='utf-8') as handle:
         boundary = json.load(handle)['features'][0]['geometry']
@@ -134,35 +163,47 @@ def make_terrain_map(df: pd.DataFrame, sites: pd.DataFrame, *, mode='score', reg
                 x=rows['lon_c'], y=rows['lat_c'], mode='markers',
                 marker={'size': 8, 'opacity': .85, 'color': rows['S'],
                         'colorscale': [[0, '#E89A5B'], [.35, '#E7CF80'], [.65, '#67BFC4'], [1, '#19566F']],
-                        'cmin': 0, 'cmax': 100, 'colorbar': {'title': 'Score /100', 'thickness': 12, 'len': .58}},
-                customdata=rows[['cell_id', 'coverage', 'confidence']].astype(str).to_numpy(),
-                hovertemplate=('<b>Celda %{customdata[0]}</b><br>' if locale=='es' else '<b>Cell %{customdata[0]}</b><br>')
-                + 'Score: %{marker.color:.1f}/100<br>'
-                + ('Cobertura: ' if locale=='es' else 'Coverage: ') + '%{customdata[1]}<br>'
-                + ('Confianza: ' if locale=='es' else 'Confidence: ') + '%{customdata[2]}<extra></extra>',
-                showlegend=False, name='Score'))
+                        'cmin': 0, 'cmax': 100, 'colorbar': {'title': labels['score'] + ' /100', 'thickness': 12, 'len': .58}},
+                customdata=pd.DataFrame({
+                    'cell_id':rows['cell_id'].astype(str),
+                    'coverage':rows['coverage']*100,
+                    'confidence':rows['confidence'].map(lambda x: CONFIDENCE_LABELS[locale].get(x,str(x))),
+                }).to_numpy(),
+                hovertemplate='<b>'+labels['cell']+' %{customdata[0]}</b><br>'
+                + labels['score']+': %{marker.color:.1f}/100<br>'
+                + labels['coverage']+': %{customdata[1]:.0f}%<br>'
+                + labels['confidence']+': %{customdata[2]}<extra></extra>',
+                showlegend=False, name=labels['score']))
     else:
         # Important: 30k grid positions without ASTER are deliberately NOT plotted.
         rows = astercells(df)
         palette = [('scored', '#147E8C'), ('outside_filter','#C89A56'),
                    ('insufficient_data','#8A94A6'), ('no_filter_data','#9F74AE')]
-        labels_es={'scored':'Con puntaje','outside_filter':'Fuera del filtro','insufficient_data':'Datos insuficientes','no_filter_data':'Falta filtro'}
-        labels_en={'scored':'Scored','outside_filter':'Outside filter','insufficient_data':'Insufficient data','no_filter_data':'Missing filter data'}
-        labels=labels_es if locale=='es' else labels_en
+        # Status identifiers are internal; users see local-language labels.
+        status_labels=MAP_LABELS[locale]
         for key,color in palette:
             sub=rows[rows['status'].eq(key)]
             if not sub.empty:
                 fig.add_trace(go.Scatter(x=sub['lon_c'], y=sub['lat_c'], mode='markers',
-                    marker={'size':8,'color':color,'opacity':.85}, name=f'{labels[key]} ({len(sub):,})',
-                    customdata=sub[['cell_id','valid_frac']].astype(str).to_numpy(),
-                    hovertemplate='<b>%{customdata[0]}</b><br>ASTER valid_frac=%{customdata[1]}<extra></extra>'))
+                    marker={'size':8,'color':color,'opacity':.85}, name=f'{status_labels[key]} ({len(sub):,})',
+                    customdata=sub[['cell_id','valid_frac']].to_numpy(),
+                    hovertemplate='<b>'+labels['cell']+' %{customdata[0]}</b><br>'+labels['valid_fraction']+': %{customdata[1]:.0%}<extra></extra>'))
     if show_sites:
+        display_names=[SITE_NAME_TRANSLATIONS.get(str(site),{}).get(locale,str(name))
+                       for site,name in zip(sites['site'],sites['name'])]
+        site_customdata=pd.DataFrame({
+            'S':sites['S'].map(lambda x: f'{float(x):.1f}' if pd.notna(x) else '—'),
+            'percentile':sites['percentile'].map(lambda x: f'{float(x):.1f}' if pd.notna(x) else '—'),
+            'confidence':sites['confidence'].map(lambda x: CONFIDENCE_LABELS[locale].get(x,str(x))),
+        }).to_numpy()
         fig.add_trace(go.Scatter(x=sites['ref_lon'], y=sites['ref_lat'], mode='markers+text',
-            text=sites['name'],textposition='top right',textfont={'size':10,'color':'#17354F'},
+            text=display_names,textposition='top right',textfont={'size':10,'color':'#17354F'},
             marker={'size':14,'symbol':'diamond','color':'#E86B4D','line':{'width':2,'color':'#FFFFFF'}},
-            customdata=sites[['S','percentile','confidence']].astype(str).to_numpy(),
-            hovertemplate='<b>%{text}</b><br>Score: %{customdata[0]}<br>Percentile: %{customdata[1]}<br>Confidence: %{customdata[2]}<extra></extra>',
-            showlegend=True,name='Sitios piloto' if locale=='es' else 'Pilot sites'))
+            customdata=site_customdata,
+            hovertemplate='<b>%{text}</b><br>'+labels['score']+': %{customdata[0]}/100<br>'
+            +labels['percentile']+': %{customdata[1]}<br>'
+            +labels['confidence']+': %{customdata[2]}<extra></extra>',
+            showlegend=True,name=labels['sites']))
     bounds={'all':((-76.5,-65.5),(-56.2,-17)),
             'north':((-71.2,-67.1),(-26.8,-22.4)),
             'south':((-73.4,-70.3),(-40.2,-37.3))}

@@ -1,4 +1,4 @@
-"""TerraMatch Chile — guided Streamlit explorer, v0.8 (UI redesign).
+"""TerraMatch Chile — guided Streamlit explorer, v0.9 (single-language and contrast fixes).
 
 Run with `streamlit run app.py`. All reported scores come from Rojas v0.7.
 This application does not calculate new scientific results and never turns missing
@@ -18,7 +18,7 @@ from ui_data import (
     make_terrain_map, site_image, status_summary,
 )
 
-st.set_page_config(page_title='TerraMatch Chile | Explore Earth, Understand Other Worlds',
+st.set_page_config(page_title='TerraMatch Chile',
                    page_icon='🌎', layout='wide', initial_sidebar_state='expanded')
 
 st.markdown('''<style>
@@ -30,7 +30,21 @@ h1,h2,h3 {font-family:'Outfit','DM Sans',sans-serif!important;letter-spacing:-.0
 h1 {color:#132F49!important;font-weight:800!important;}
 h2 {color:#173D54!important;}
 section[data-testid="stSidebar"] {background:#102A43;}
-section[data-testid="stSidebar"] * {color:#F2F8FA!important;}
+/* Only the dark sidebar's headings and navigation are light; never recolor all widget descendants. */
+section[data-testid="stSidebar"] {color:#F2F8FA;}
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3,
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p,
+section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+section[data-testid="stSidebar"] [data-testid="stRadio"] label p {color:#F2F8FA!important;}
+section[data-testid="stSidebar"] a {color:#ACF0F1!important;}
+section[data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] {background:#173C56;border:1px solid #34566D;border-radius:12px;padding:8px 10px;}
+section[data-testid="stSidebar"] [data-testid="stRadio"] [role="radio"] {accent-color:#66D7D3;}
+/* Protect future sidebar selectboxes too, including the popup opened outside the sidebar. */
+section[data-testid="stSidebar"] [data-baseweb="select"] > div {background:#FFFFFF!important;color:#173C52!important;}
+section[data-testid="stSidebar"] [data-baseweb="select"] [role="combobox"],
+section[data-testid="stSidebar"] [data-baseweb="select"] input {color:#173C52!important;}
 section[data-testid="stSidebar"] [data-baseweb="radio"] label:hover {background:#1A3F58;}
 section[data-testid="stSidebar"] hr {border-color:#34566D;}
 section[data-testid="stSidebar"] [data-testid="stRadio"] {font-weight:500;}
@@ -62,7 +76,7 @@ PAGES=['home','about','method','explore','sites','validation','data']
 TR={
 'es':{
 'nav':'NAVEGACIÓN','home':'Inicio','about':'Sobre el proyecto','method':'Cómo funciona','explore':'Explorar Chile','sites':'Fichas de sitios','validation':'Resultados y validación','data':'Datos y limitaciones',
-'lang':'Idioma / Language','context':'Prototipo de investigación · NASA Space Apps Challenge 2026',
+'lang':'Idioma','context':'Prototipo de investigación · NASA Space Apps Challenge 2026',
 'hero_kicker':'CIENCIA PLANETARIA · DATOS ABIERTOS · CHILE',
 'hero_title':'Exploramos la Tierra para comprender otros mundos.',
 'hero_text':'TerraMatch Chile compara ambientes de nuestro país con superficies seleccionadas de Marte y la Luna. Mediante datos científicos, buscamos similitudes topográficas, reconocemos diferencias y proponemos lugares para investigar.',
@@ -116,10 +130,59 @@ TR={
 'data_status':'¿Qué significa cada estado?','scored_label':'Con puntaje','outside_label':'Fuera del filtro','insuff_label':'Información insuficiente','nofilter_label':'Sin información del filtro',
 'data_quality':'Consulta los archivos, resultados y método reproducible desde GitHub.',
 'footer':'Desarrollado por Team Joseadores · Universidad de La Frontera, Temuco, Chile · NASA Space Apps Challenge 2026 · Prototipo de investigación (no afiliación ni aval de NASA).',
+'pilot_badge':'Versión 0.9 · Datos piloto',
+'source_code':'Código fuente',
+'method_link':'Metodología',
+'full_method':'Consultar metodología técnica completa',
+'review_link':'Revisión de calidad',
+'expected_files':'Archivos requeridos:',
+'image_missing':'Imagen pendiente de incorporar',
+'terrain_caption':'Visualizaciones de relieve derivadas de modelos de elevación; no son fotografías.',
+'site_llaima_flows':'Llaima, sector de coladas',
+'site_llaima_cone':'Llaima, cono',
+'site_pajonales':'Salar de Pajonales',
+'site_yungay':'Yungay',
+'site_llullaillaco':'Llullaillaco',
+'planet_label_mars':'Marte',
+'planet_label_moon':'Luna',
+'technical_details':'Detalles técnicos',
+'detail_site':'Identificador del sitio',
+'detail_profile':'Perfil planetario',
+'detail_cells':'Celdas de análisis del área',
+'detail_scored':'Celdas con puntuación',
+'detail_stability':'Frecuencia entre el 1 % superior (p_top)',
+'detail_status':'Estado','detail_value':'Valor',
+'detail_geometry':'Geometría',
+'geometry_polygon':'Polígono',
+'geometry_point':'Punto',
+'site_comparison':'Coladas del Llaima frente al cono',
+'preliminary_geometry':'Comparación piloto; delimitaciones geológicas preliminares.',
+'cell_id_label':'ID de celda',
+'latitude':'Latitud',
+'longitude':'Longitud',
+'score_col':'Puntaje',
+'coverage_col':'Cobertura (%)',
+'confidence_col':'Confianza',
+'source_chile_topo':'Chile · topografía',
+'source_mars':'Marte · Elysium Planitia',
+'source_moon':'Luna · Mare Tranquillitatis',
+'source_precip':'Chile · precipitación',
+'source_geo':'Chile · geología',
+'source_boundaries':'Chile · límites referenciales',
+'source_link':'Abrir fuente',
+'map_chile_aster':'Chile · ASTER GDEM v3 · Yungay',
+'map_mars_mola':'Marte · MOLA · Elysium Planitia',
+'map_moon_sldem':'Luna · SLDEM2015 · Mare Tranquillitatis',
+'status_scored':'Con puntaje',
+'status_outside_filter':'Fuera del filtro',
+'status_insufficient_data':'Información insuficiente',
+'status_no_filter_data':'Sin datos del filtro',
+'nav_git':'GitHub',
+'app_error':'Faltan los datos v0.7 o hay un error de formato: ',
 },
 'en':{
 'nav':'NAVIGATION','home':'Home','about':'About the Project','method':'How It Works','explore':'Explore Chile','sites':'Site Profiles','validation':'Results & Validation','data':'Data & Limitations',
-'lang':'Language / Idioma','context':'Research prototype · NASA Space Apps Challenge 2026',
+'lang':'Language','context':'Research prototype · NASA Space Apps Challenge 2026',
 'hero_kicker':'PLANETARY SCIENCE · OPEN DATA · CHILE','hero_title':'Explore Earth. Understand Other Worlds.',
 'hero_text':'TerraMatch Chile compares Chilean environments with selected terrains on Mars and the Moon. Using scientific data, we examine topographic similarities, explain differences and identify areas worth investigating.',
 'cta_explore':'Explore the map','cta_how':'How it works',
@@ -171,19 +234,74 @@ TR={
 'data_status':'What do the status flags mean?','scored_label':'Scored','outside_label':'Outside filter','insuff_label':'Insufficient information','nofilter_label':'Missing filter information',
 'data_quality':'Inspect the scientific files, results and reproducible method on GitHub.',
 'footer':'Built by Team Joseadores · Universidad de La Frontera, Temuco, Chile · NASA Space Apps Challenge 2026 · Research prototype (not NASA-endorsed).',
+'pilot_badge':'Version 0.9 · Pilot data',
+'source_code':'Source code',
+'method_link':'Methodology',
+'full_method':'Read the full technical methodology',
+'review_link':'Quality review',
+'expected_files':'Required files:',
+'image_missing':'Image not yet available',
+'terrain_caption':'Shaded terrain visualizations derived from elevation models; these are not photographs.',
+'site_llaima_flows':'Llaima lava-flow sector',
+'site_llaima_cone':'Llaima volcanic cone',
+'site_pajonales':'Salar de Pajonales',
+'site_yungay':'Yungay',
+'site_llullaillaco':'Llullaillaco',
+'planet_label_mars':'Mars',
+'planet_label_moon':'Moon',
+'technical_details':'Technical details',
+'detail_site':'Site identifier',
+'detail_profile':'Planetary profile',
+'detail_cells':'Analysis cells in study area',
+'detail_scored':'Scored cells',
+'detail_stability':'Frequency among top 1% (p_top)',
+'detail_status':'Status','detail_value':'Value',
+'detail_geometry':'Geometry',
+'geometry_polygon':'Polygon',
+'geometry_point':'Point',
+'site_comparison':'Llaima lava-flow sector vs cone',
+'preliminary_geometry':'Pilot comparison; preliminary geological boundaries.',
+'cell_id_label':'Cell ID',
+'latitude':'Latitude',
+'longitude':'Longitude',
+'score_col':'Score',
+'coverage_col':'Coverage (%)',
+'confidence_col':'Confidence',
+'source_chile_topo':'Chile · topography',
+'source_mars':'Mars · Elysium Planitia',
+'source_moon':'Moon · Mare Tranquillitatis',
+'source_precip':'Chile · precipitation',
+'source_geo':'Chile · geology',
+'source_boundaries':'Chile · reference boundaries',
+'source_link':'Open source',
+'map_chile_aster':'Chile · ASTER GDEM v3 · Yungay',
+'map_mars_mola':'Mars · MOLA · Elysium Planitia',
+'map_moon_sldem':'Moon · SLDEM2015 · Mare Tranquillitatis',
+'status_scored':'Scored',
+'status_outside_filter':'Outside filter',
+'status_insufficient_data':'Insufficient information',
+'status_no_filter_data':'Missing filter information',
+'nav_git':'GitHub',
+'app_error':'Missing v0.7 data or invalid format: ',
 }}
 
-for k in TR['es']:
-    if k not in TR['en']:
-        raise RuntimeError(f'Missing English translation: {k}')
+for key in set(TR['es']) | set(TR['en']):
+    if key not in TR['es'] or key not in TR['en']:
+        raise RuntimeError(f'Missing translation for: {key}')
 
 if 'lang' not in st.session_state: st.session_state.lang='es'
 if 'page' not in st.session_state: st.session_state.page='home'
 if 'planet' not in st.session_state: st.session_state.planet='mars'
 
-lang=st.sidebar.selectbox('Language / Idioma',['Español','English'],
-                          index=0 if st.session_state.lang=='es' else 1)
-st.session_state.lang='es' if lang=='Español' else 'en'
+# A high-contrast language radio avoids the white-text-on-white-selectbox bug.
+# Language names are displayed in their own language, as is standard for a language switcher.
+ui_lang=st.sidebar.radio(TR[st.session_state.lang]['lang'], ['es','en'],
+                         format_func=lambda code: 'Español' if code=='es' else 'English',
+                         index=0 if st.session_state.lang=='es' else 1,
+                         key='ui_lang', horizontal=True)
+if ui_lang != st.session_state.lang:
+    st.session_state.lang=ui_lang
+    st.rerun()  # Refresh the label and all content in the newly selected language.
 locale=st.session_state.lang
 t=TR[locale]
 
@@ -191,11 +309,11 @@ st.sidebar.markdown('## 🌎 TerraMatch Chile')
 st.sidebar.caption(t['context'])
 st.sidebar.divider()
 st.sidebar.caption(t['nav'])
-selection=st.sidebar.radio('Navigation',options=PAGES,format_func=lambda p:t[p],
+selection=st.sidebar.radio(t['nav'],options=PAGES,format_func=lambda p:t[p],
                            key='page',label_visibility='collapsed')
 st.sidebar.divider()
-st.sidebar.caption('V0.8 · Pilot data / Datos piloto')
-st.sidebar.markdown('[GitHub](https://github.com/martizng/terramatch-chile/tree/integracion-motor-rojas-v07) · [Methodology](https://github.com/martizng/terramatch-chile/blob/main/docs/methodology.md)')
+st.sidebar.caption(t['pilot_badge'])
+st.sidebar.markdown(f'[{t["source_code"]}](https://github.com/martizng/terramatch-chile/tree/integracion-motor-rojas-v07) · [{t["method_link"]}](https://github.com/martizng/terramatch-chile/blob/main/docs/methodology.md)')
 
 @st.cache_data(show_spinner=False)
 def load_results():
@@ -204,9 +322,8 @@ def load_results():
 try:
     SCORES,SITES,TARGETS,VALIDATION=load_results()
 except (OSError,ValueError,KeyError) as ex:
-    st.error(('Faltan los datos v0.7 o hay un error de formato: ' if locale=='es' else
-              'Missing v0.7 data or invalid format: ') +str(ex))
-    st.info('Expected files: results/mars_scores_web.csv, results/moon_scores_web.csv, results/sites_summary.csv, results/validation.json, data/targets.json')
+    st.error(t['app_error'] + str(ex))
+    st.info(t['expected_files'] + ' results/mars_scores_web.csv, results/moon_scores_web.csv, results/sites_summary.csv, results/validation.json, data/targets.json')
     st.stop()
 
 def nav(target):
@@ -236,11 +353,29 @@ def img(path,caption=None):
         st.image(str(p),use_container_width=True)
         if caption:st.caption(caption)
     else:
-        st.info('Image pending / Imagen pendiente')
+        st.info(t['image_missing'])
 
 def site_role(row):
-    labels={'benchmark':('Sitio de referencia','Reference site'), 'control':('Sitio de control','Control site'), 'candidate':('Candidato exploratorio','Exploratory candidate')}
+    labels={'benchmark':('Sitio de referencia','Reference site'), 'control':('Sitio de control','Control site'), 'candidate':('Candidato exploratorio','Exploratory candidate'), 'contrast':('Contraste interno','Internal contrast')}
     return labels.get(str(row['role']),('Sitio piloto','Pilot site'))[0 if locale=='es' else 1]
+
+
+def localized_site_name(ident):
+    key='site_'+str(ident)
+    if key in t:
+        return t[key]
+    row=SITES.loc[SITES['site'].eq(ident),'name']
+    return str(row.iloc[0]) if not row.empty else str(ident)
+
+def translated_confidence(value):
+    raw=str(value)
+    if locale=='es':
+        return raw
+    return {'Baja':'Low','Media':'Medium','Alta':'High'}.get(raw,raw)
+
+def translated_status(value):
+    key='status_'+str(value)
+    return t.get(key,str(value))
 
 def score_label(val):
     if pd.isna(val):return '—'
@@ -264,14 +399,14 @@ if selection=='home':
     bc1,bc2,bc3=st.columns([1,1,1])
     with bc1:
         img(VISUALS/'yungay_aster.jpg')
-        st.caption('Chile · ASTER GDEM v3 · Yungay')
+        st.caption(t['map_chile_aster'])
     with bc2:
         img(VISUALS/'mars_elysium_mola.jpg')
-        st.caption('Mars · MOLA · Elysium Planitia')
+        st.caption(t['map_mars_mola'])
     with bc3:
         img(VISUALS/'moon_tranquillitatis_sldem.jpg')
-        st.caption('Moon · SLDEM2015 · Mare Tranquillitatis')
-    st.caption('Visualizaciones de relieve derivadas de modelos de elevación; no son fotografías / Shaded terrain renderings, not photographs.')
+        st.caption(t['map_moon_sldem'])
+    st.caption(t['terrain_caption'])
     ca,cb=st.columns(2,gap='large')
     with ca:simple_card(t['what'],t['what_text'])
     with cb:simple_card(t['why'],t['why_text'])
@@ -309,8 +444,8 @@ elif selection=='about':
         st.markdown('**Llullaillaco:** '+('control de alta montaña' if locale=='es' else 'high-mountain control'))
     with col2:
         st.markdown('#### ⚪ '+t['moon_profile'])
-        st.markdown('**Llaima flows:** '+('candidato exploratorio' if locale=='es' else 'exploratory candidate'))
-        st.markdown('**Llaima cone:** '+('control interno' if locale=='es' else 'internal contrast'))
+        st.markdown(f'**{localized_site_name("llaima_flows")}:** '+('candidato exploratorio' if locale=='es' else 'exploratory candidate'))
+        st.markdown(f'**{localized_site_name("llaima_cone")}:** '+('control interno' if locale=='es' else 'internal contrast'))
     note(f'{t["about_analogy"]}: {t["about_analogy_txt"]}',warn=True)
 
 # ------------------- HOW IT WORKS -------------------
@@ -327,7 +462,7 @@ elif selection=='method':
         with col:simple_card(t[a],t[b])
     st.write('')
     note(t['method_tip'],warn=True)
-    st.markdown('[📖 Technical methodology / Metodología completa](https://github.com/martizng/terramatch-chile/blob/main/docs/methodology.md)')
+    st.markdown(f'[📖 {t["full_method"]}](https://github.com/martizng/terramatch-chile/blob/main/docs/methodology.md)')
 
 # ------------------- MAP EXPLORER -------------------
 elif selection=='explore':
@@ -363,8 +498,16 @@ elif selection=='explore':
         st.markdown(f'**{t["insuff_label"]}:** {t["legend_missing"]}')
     st.subheader(t['pilot_rank'])
     highest=scored.nlargest(8,'S')[['cell_id','lat_c','lon_c','S','coverage','confidence']].copy()
-    highest=highest.rename(columns={'cell_id':'ID','lat_c':'Lat','lon_c':'Lon','S':'Score','coverage':'Coverage','confidence':'Confidence'})
-    st.dataframe(highest.round({'Lat':3,'Lon':3,'Score':1,'Coverage':2}),hide_index=True,use_container_width=True)
+    highest['coverage']=highest['coverage']*100
+    highest['confidence']=highest['confidence'].map(translated_confidence)
+    highest=highest.rename(columns={
+        'cell_id':t['cell_id_label'], 'lat_c':t['latitude'], 'lon_c':t['longitude'],
+        'S':t['score_col'], 'coverage':t['coverage_col'], 'confidence':t['confidence_col']})
+    highest[t['latitude']]=highest[t['latitude']].round(3)
+    highest[t['longitude']]=highest[t['longitude']].round(3)
+    highest[t['score_col']]=highest[t['score_col']].round(1)
+    highest[t['coverage_col']]=highest[t['coverage_col']].round(0)
+    st.dataframe(highest,hide_index=True,use_container_width=True)
     st.caption(t['pilot_only'])
     st.download_button(t['download'],data=scored.to_csv(index=False).encode('utf-8-sig'),
                        file_name=f'terramatch_{profile}_pilot_scored.csv',mime='text/csv')
@@ -373,7 +516,7 @@ elif selection=='explore':
 elif selection=='sites':
     header(t['sites_kicker'],t['sites_title'],t['sites_sub'])
     selected=st.selectbox(t['select_site'],SITES['site'].tolist(),
-                          format_func=lambda ident:str(SITES.loc[SITES['site'].eq(ident),'name'].iloc[0]))
+                          format_func=localized_site_name)
     site=SITES[SITES['site'].eq(selected)].iloc[0]
     profile='mars' if site['profile']=='mars_elysium' else 'moon'
     target=next((x for x in TARGETS if x['id']==site['profile']),None)
@@ -382,15 +525,14 @@ elif selection=='sites':
         img(site_image(selected),t['terrain_photo'])
         st.caption(f'≈ {float(site["ref_lat"]):.3f}°, {float(site["ref_lon"]):.3f}° · {site_role(site)}')
     with col2:
-        st.markdown('### '+str(site['name']))
+        st.markdown('### '+localized_site_name(selected))
         st.markdown(f'**{site_role(site)}** · {t["mars_profile"] if profile=="mars" else t["moon_profile"]}')
         a,b=st.columns(2)
         a.metric(t['site_score'],score_label(site['S']))
         b.metric(t['site_pct'],num(site['percentile'])+' / 100')
         a,b=st.columns(2)
         a.metric(t['site_cov'],num(float(site['coverage'])*100,0)+'%')
-        conf={'Baja':'Low','Media':'Medium','Alta':'High'}.get(str(site['confidence']),str(site['confidence']))
-        b.metric(t['site_conf'],conf if locale=='en' else str(site['confidence']))
+        b.metric(t['site_conf'],translated_confidence(site['confidence']))
         note(SITE_EXPLANATIONS.get(selected,{}).get(locale,''))
     if selected in ['pajonales','llaima_flows']:note(t['proxy_warning'],warn=True)
     st.subheader(t['comp_title'])
@@ -407,11 +549,17 @@ elif selection=='sites':
             a.metric(t['value_site'],num(val,2)+' '+unit)
             b.metric(t['value_target'],num(median,2)+' '+unit if median is not None else '—')
     st.caption(t['metric_scope'])
-    with st.expander('Technical details / Detalles técnicos'):
-        st.json({'site':str(site['site']),'profile':str(site['profile']),
-                 'n_cells':int(site['n_cells']),'n_scored':int(site['n_scored']),
-                 'p_top':None if pd.isna(site['p_top']) else float(site['p_top']),
-                 'status':str(site['status']),'geometry':str(site['geometry'])})
+    with st.expander(t['technical_details']):
+        details=[
+            (t['detail_site'], str(site['site'])),
+            (t['detail_profile'], t['mars_profile'] if profile=='mars' else t['moon_profile']),
+            (t['detail_cells'], int(site['n_cells'])),
+            (t['detail_scored'], int(site['n_scored'])),
+            (t['detail_stability'], num(site['p_top'],3)),
+            (t['detail_status'], translated_status(site['status'])),
+            (t['detail_geometry'], t.get('geometry_'+str(site['geometry']),str(site['geometry'])))
+        ]
+        st.dataframe(pd.DataFrame(details,columns=[t['technical_details'],t['detail_value']]),hide_index=True,use_container_width=True)
 
 # ------------------- SCIENTIFIC RESULTS -------------------
 elif selection=='validation':
@@ -438,25 +586,25 @@ elif selection=='validation':
     with b:
         flows=SITES[SITES['site'].eq('llaima_flows')].iloc[0]
         cone=SITES[SITES['site'].eq('llaima_cone')].iloc[0]
-        st.metric('Llaima flows vs cone',f'{float(flows["S"]):.1f} vs {float(cone["S"]):.1f} /100')
-        st.caption('Site comparison; preliminary geological polygons / polígonos preliminares')
+        st.metric(t['site_comparison'],f'{float(flows["S"]):.1f} vs {float(cone["S"]):.1f} /100')
+        st.caption(t['preliminary_geometry'])
     note(t['validation_precision'],warn=True)
 
 # ------------------- OPEN DATA & LIMITATIONS -------------------
 elif selection=='data':
     header(t['data_kicker'],t['data_title'])
     st.subheader(t['data_sources'])
-    sources=[('ASTER GDEM v3','Chile · topografía / topography','https://lpdaac.usgs.gov/products/astgtmv003/'),
-             ('MOLA MEGDR','Mars · Elysium Planitia','https://pds-geosciences.wustl.edu/missions/mgs/megdr.html'),
-             ('SLDEM2015','Moon · Mare Tranquillitatis','https://pgda.gsfc.nasa.gov/products/54'),
-             ('GPM IMERG Final V07','Chile · precipitación / precipitation','https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07'),
-             ('SERNAGEOMIN','Chile · geología / geology','https://www.sernageomin.cl/'),
-             ('BCN','Chile · límites referenciales / reference boundaries','https://www.bcn.cl/siit/mapas_vectoriales')]
+    sources=[('ASTER GDEM v3',t['source_chile_topo'],'https://lpdaac.usgs.gov/products/astgtmv003/'),
+             ('MOLA MEGDR',t['source_mars'],'https://pds-geosciences.wustl.edu/missions/mgs/megdr.html'),
+             ('SLDEM2015',t['source_moon'],'https://pgda.gsfc.nasa.gov/products/54'),
+             ('GPM IMERG Final V07',t['source_precip'],'https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07'),
+             ('SERNAGEOMIN',t['source_geo'],'https://www.sernageomin.cl/'),
+             ('BCN',t['source_boundaries'],'https://www.bcn.cl/siit/mapas_vectoriales')]
     for title,sub,link in sources:
         with st.container(border=True):
             c1,c2=st.columns([2,1])
             c1.markdown(f'**{title}** · {sub}')
-            c2.markdown(f'[Source / Fuente ↗]({link})')
+            c2.markdown(f'[{t["source_link"]} ↗]({link})')
     st.subheader(t['limits'])
     for i in range(1,7):st.markdown(f'**{i}.** {t["limits"+str(i)]}')
     st.subheader(t['data_status'])
@@ -467,6 +615,6 @@ elif selection=='data':
     for key,emoji,expl in statuses:
         st.markdown(f'{emoji} **{t[key]}:** {expl[0 if locale=="es" else 1]}')
     note(t['data_quality'])
-    st.markdown('[📂 GitHub – v0.7](https://github.com/martizng/terramatch-chile/tree/integracion-motor-rojas-v07) · [📄 Quality review / Revisión](https://github.com/martizng/terramatch-chile/blob/integracion-motor-rojas-v07/docs/reviews/motor_v07_integracion.md)')
+    st.markdown(f'[📂 {t["source_code"]}](https://github.com/martizng/terramatch-chile/tree/integracion-motor-rojas-v07) · [📄 {t["review_link"]}](https://github.com/martizng/terramatch-chile/blob/integracion-motor-rojas-v07/docs/reviews/motor_v07_integracion.md)')
 
 st.markdown(f'<div class="tm-foot">{escape(t["footer"])}</div>',unsafe_allow_html=True)
