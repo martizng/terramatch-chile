@@ -1,0 +1,12 @@
+{
+  "res": 0.05,
+  "lat_min": -56.0,
+  "lat_max": -17.0,
+  "lon_min": -76.0,
+  "lon_max": -66.0,
+  "ny": 780,
+  "nx": 200,
+  "n_cells_total": 156000,
+  "land_mask": "Regional.shp",
+  "n_cells_kept": 31660
+}
