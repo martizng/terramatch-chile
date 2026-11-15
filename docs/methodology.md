@@ -162,11 +162,11 @@ Para cada ventana de 5 km y para cada sitio se calculan las estadísticas necesa
 
 ### 6.1 Rango del perfil y distancia por variable
 
-Para cada variable \(i\), el perfil planetario tiene un rango de referencia \([bajo_i, alto_i]\). La distancia normalizada de un valor terrestre \(x_i\) se define como:
+Para cada variable $(i$), el perfil planetario tiene un rango de referencia \([bajo_i, alto_i]\). La distancia normalizada de un valor terrestre \(x_i\) se define como:
 
-\[
+$$
 d_i = \frac{\max(bajo_i-x_i,\ 0,\ x_i-alto_i)}{s_i}
-\]
+$$
 
 Donde \(s_i\) corresponde a la escala de normalización de la variable. Se define inicialmente como el rango intercuartílico (IQR) de esa variable en Chile:
 
