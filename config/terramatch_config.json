@@ -1,0 +1,123 @@
+{
+  "_doc": "Rules of TerraMatch_Chile_Proyecto_Final v2.0 (sections 6.1, 6.2, 8 and 8.1). Change a value here, never in the code.",
+  "version": "2.0",
+  "variables": {
+    "slope_p90_deg": {
+      "label": "Pendiente P90",
+      "unit": "deg",
+      "definition": "90th percentile of slope inside the 5 km window",
+      "weight": 0.3333333333,
+      "transform": null
+    },
+    "relief_m": {
+      "label": "Relieve local P95-P5",
+      "unit": "m",
+      "definition": "95th minus 5th percentile of elevation inside the 5 km window",
+      "weight": 0.3333333333,
+      "transform": "log1p"
+    },
+    "rough_sd_deg": {
+      "label": "Rugosidad",
+      "unit": "deg",
+      "definition": "standard deviation of slope inside the 5 km window",
+      "weight": 0.3333333333,
+      "transform": null
+    }
+  },
+  "dimension": "terrain",
+  "common_resolution_m": 463.0835744,
+  "common_resolution_source": "MOLA MEGDR 128 ppd, USGS Astrogeology (approx. 463 m)",
+  "window_km": 5.0,
+  "grid": {
+    "crs": "EPSG:4326",
+    "resolution_deg": 0.05,
+    "bbox": {
+      "lat_min": -56.0,
+      "lat_max": -17.0,
+      "lon_min": -76.0,
+      "lon_max": -66.0
+    }
+  },
+  "normalization": {
+    "scale": "IQR over all Chilean cells",
+    "fallback": "standard deviation",
+    "zero_variance": "exclude variable from distances and coverage numerator and denominator; still require >=2 informative variables"
+  },
+  "similarity": "S = 100 * exp(-D); D = sum(w_i m_i d_i) / sum(w_i m_i); d_i = distance to [low, high] / IQR_i",
+  "coverage_min": 0.5,
+  "coverage_min_note": "share of weight present; with three equal weights it means at least 2 of 3 variables",
+  "monte_carlo": {
+    "iterations": 500,
+    "dirichlet_concentration": 20.0,
+    "target_sampling": "uniform in [low, high]",
+    "top_fraction": 0.01,
+    "percentiles": [
+      5,
+      50,
+      95
+    ],
+    "seed": 42
+  },
+  "confidence": [
+    {
+      "level": "Alta",
+      "min_vars": 3,
+      "min_p_top": 0.7
+    },
+    {
+      "level": "Media",
+      "min_vars": 2,
+      "min_p_top": 0.3
+    },
+    {
+      "level": "Baja",
+      "min_vars": 0,
+      "min_p_top": 0.0
+    }
+  ],
+  "profile_windows": {
+    "pilot_area_km": 30,
+    "expected_windows": 25,
+    "min_valid_windows": 5,
+    "min_measured_fraction": 0.5,
+    "reference": "median",
+    "range_percentiles": [
+      10,
+      90
+    ]
+  },
+  "filters": {
+    "mars": {
+      "type": "max",
+      "column": "precip_mm_yr",
+      "max": 250,
+      "label": "aridity, GPM IMERG Final V07, mean 2001-2024 <= 250 mm/yr"
+    },
+    "moon": {
+      "type": "flag",
+      "column": "volcanic_unit",
+      "label": "volcanic unit, SERNAGEOMIN 1:1,000,000"
+    }
+  },
+  "validation": {
+    "benchmark_min_percentile": 75,
+    "control_max_percentile": 25,
+    "steep_top_fraction": 0.05,
+    "mars_benchmarks": [
+      "yungay",
+      "pajonales"
+    ],
+    "mars_controls": [
+      "llullaillaco"
+    ],
+    "moon_pair": {
+      "higher": "llaima_flows",
+      "lower": "llaima_cone"
+    },
+    "rule": "Report the real outcome. Never change results to match expectations."
+  },
+  "sites": {
+    "directory": "data/chile/sites",
+    "missing_polygon": "pending_geometry; no approximate fallback"
+  }
+}
