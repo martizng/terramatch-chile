@@ -1,0 +1,28 @@
+TERRAMATCH CHILE - DATOS PLANETARIOS
+Responsable: BJOR
+Fecha: 15-11-2026
+
+MARTE - ELYSIUM PLANITIA
+Producto: MOLA MEGDR, 128 pixeles/grado
+Original: megt44n090hb.img
+Conteo: megc44n090hb.img
+Area: 135.65-136.15 E; 4.25-4.75 N
+Coordenadas: geograficas de Marte, grados
+Elevacion: metros, respecto del areoide
+Cobertura con conteo valido: 30.59%
+Limitacion: verificar ventanas de 5 km
+con al menos 50% de observaciones directas.
+Fuente: https://pds-geosciences.wustl.edu/missions/mgs/megdr.html
+
+LUNA - MARE TRANQUILLITATIS
+Producto: SLDEM2015, 512 pixeles/grado
+Original: SLDEM2015_512_00N_30N_000_045.JP2
+Area: 22.98-23.97 E; 0.18-1.17 N
+Coordenadas: GCS_Moon_2000, grados
+Elevacion: metros respecto del radio lunar
+de referencia de 1737400 m.
+Conversion JP2: valor original multiplicado por 0.5
+Fuente: https://pgda.gsfc.nasa.gov/products/54
+
+Los GeoTIFF no estan remuestreados a 463 m.
+El calculo de perfiles corresponde a Rojas.
