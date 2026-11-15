@@ -109,7 +109,7 @@ def build_target_from_dem(dem, px_x_m, px_y_m, *, target_id, body, name, source,
     for v in VARS:
         x = np.array([w[v] for w in wins]); x = x[np.isfinite(x)]
         variables[v] = {"value": float(np.median(x)), "low": float(np.percentile(x, P_LO)),
-                        "high": float(np.percentile(x, P_HI)), "kind": "derived_from_dem",
+                        "high": float(np.percentile(x, P_HI)), "kind": "measured",
                         "status": "computed",
                         "source": f"{product}; derived at {BASE_RES_M:.0f} m, {WINDOW_KM:g} km windows",
                         "notes": f"{len(wins)} windows used"}

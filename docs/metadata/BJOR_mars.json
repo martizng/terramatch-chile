@@ -1,0 +1,30 @@
+{
+  "cuerpo": "Marte",
+  "region": "Elysium Planitia",
+  "mision": "Mars Global Surveyor",
+  "instrumento": "MOLA",
+  "producto": "MEGDR",
+  "archivo_original": "megt44n090hb.img",
+  "identificador": "MEGT44N090HB.IMG",
+  "version": "2.0",
+  "version_conteo": "2.0",
+  "archivo_conteo": "megc44n090hb.img",
+  "fecha_descarga": "2026-11-14",
+  "resolucion_original": "128 pixeles por grado",
+  "resolucion_recorte_grados": 0.0078,
+  "elevacion_unidad": "metros",
+  "referencia_vertical": "areoide marciano",
+  "sistema_coordenadas": "GEOGCRS[\"unknown\",\n    DATUM[\"unknown\",\n        ELLIPSOID[\"unknown\",3396000,0,\n            LENGTHUNIT[\"metre\",1,\n                ID[\"EPSG\",9001]]]],\n    PRIMEM[\"Reference meridian\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433,\n            ID[\"EPSG\",9122]]],\n    CS[ellipsoidal,2],\n        AXIS[\"latitude\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]],\n        AXIS[\"longitude\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]]]",
+  "limites_recorte": {
+    "longitud_min": 135.6484,
+    "longitud_max": 136.1484,
+    "latitud_min": 4.25,
+    "latitud_max": 4.75
+  },
+  "pixeles_totales": 4096,
+  "pixeles_con_observaciones": 1253,
+  "cobertura_directa_porcentaje": 30.5908,
+  "calidad": "Evaluacion preliminar: 5 de 25 ventanas independientes de 11x11 pixeles cumplen cobertura de al menos 50%. Pendiente validacion definitiva del modelo.",
+  "procesamiento": "Lectura PDS, asignacion de coordenadas marcianas en grados segun mosaico oficial, recorte de Elysium y exportacion a GeoTIFF. Sin remuestreo a la escala comun.",
+  "fuente": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html"
+}

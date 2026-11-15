@@ -23,6 +23,12 @@ def _check(value, ok):
             "passed": None if value is None or np.isnan(value) else bool(ok)}
 
 
+def _pending(sites_df, ids):
+    """Sites among ids without a verified polygon (their checks are pending, passed = null)."""
+    s = sites_df.set_index("site")
+    return [k for k in ids if k not in s.index or s.loc[k, "geometry"] != "polygon"]
+
+
 def validate_mars(prof, master, sites_df):
     s = sites_df.set_index("site")
     scored = prof.loc[prof.status == "scored", "S"].values
@@ -41,7 +47,8 @@ def validate_mars(prof, master, sites_df):
     out[f"steep_top5_median_percentile<={VAL['control_max_percentile']}"] = _check(p, p <= VAL["control_max_percentile"])
     pos = [s.loc[k, "S"] for k in VAL["mars_benchmarks"] if k in s.index]
     neg = [s.loc[k, "S"] for k in VAL["mars_controls"] if k in s.index]
-    return {"checks": out, "auc_secondary": _auc(pos, neg)}
+    return {"checks": out, "auc_secondary": _auc(pos, neg),
+            "pending_geometry_sites": _pending(sites_df, VAL["mars_benchmarks"] + VAL["mars_controls"])}
 
 
 def validate_moon(sites_df):
@@ -51,4 +58,5 @@ def validate_moon(sites_df):
     diff = a - b
     return {"checks": {"llaima_flows_S>llaima_cone_S": {
         "value": None if np.isnan(diff) else round(float(diff), 2),
-        "passed": None if np.isnan(diff) else bool(diff > 0)}}}
+        "passed": None if np.isnan(diff) else bool(diff > 0)}},
+        "pending_geometry_sites": _pending(sites_df, list(VAL["moon_pair"].values()))}

@@ -1,6 +1,6 @@
 {
   "_doc": "Rules of TerraMatch_Chile_Proyecto_Final v2.0 (sections 6.1, 6.2, 8 and 8.1). Change a value here, never in the code.",
-  "version": "2.0",
+  "version": "2.0 (motor v0.6)",
   "variables": {
     "slope_p90_deg": {
       "label": "Pendiente P90",
@@ -40,8 +40,8 @@
   },
   "normalization": {
     "scale": "IQR over all Chilean cells",
-    "fallback": "standard deviation",
-    "zero_variance": "exclude variable from distances and coverage numerator and denominator; still require >=2 informative variables"
+    "fallback": "standard deviation (doc v2.0, Fase 3)",
+    "if_both_zero": "variable excluded from the comparison and reported; never an artificial scale"
   },
   "similarity": "S = 100 * exp(-D); D = sum(w_i m_i d_i) / sum(w_i m_i); d_i = distance to [low, high] / IQR_i",
   "coverage_min": 0.5,
@@ -56,7 +56,8 @@
       50,
       95
     ],
-    "seed": 42
+    "seed": 42,
+    "ties": "average ranks (scipy.stats.rankdata, method='average')"
   },
   "confidence": [
     {
@@ -91,12 +92,12 @@
       "type": "max",
       "column": "precip_mm_yr",
       "max": 250,
-      "label": "aridity, GPM IMERG Final V07, mean 2001-2024 <= 250 mm/yr"
+      "label": "aridity, GPM IMERG Final V07, mean 2001-2024 <= 250 mm/yr (primary source, doc v2.0)"
     },
     "moon": {
       "type": "flag",
       "column": "volcanic_unit",
-      "label": "volcanic unit, SERNAGEOMIN 1:1,000,000"
+      "label": "volcanic unit, SERNAGEOMIN 1:1,000,000, strict criterion (Pliocene-Quaternary)"
     }
   },
   "validation": {
@@ -116,8 +117,48 @@
     },
     "rule": "Report the real outcome. Never change results to match expectations."
   },
-  "sites": {
-    "directory": "data/chile/sites",
-    "missing_polygon": "pending_geometry; no approximate fallback"
+  "chile_dem": {
+    "utm_zones": [
+      {
+        "epsg": "EPSG:32718",
+        "lon_min": -78.0,
+        "lon_max": -72.0
+      },
+      {
+        "epsg": "EPSG:32719",
+        "lon_min": -72.0,
+        "lon_max": -66.0
+      }
+    ],
+    "zone_buffer_deg": 0.15,
+    "max_scale_error": 0.01,
+    "min_valid_elevation_m": 0.0,
+    "min_valid_elevation_note": "pixels <= 0 m (ocean in the ASTER mosaic) are no data, so coastal windows are not read as flat terrain",
+    "window_min_valid_fraction": 0.5,
+    "window_min_valid_note": "a 5 km window with less than 50% valid pixels gives NaN (no coverage), never a low or high value"
+  },
+  "sensitivity_filters": {
+    "mars": [
+      {
+        "id": "precip_cr2met_imerg",
+        "type": "max",
+        "column": "precip_alt_mm_yr",
+        "max": 250,
+        "label": "complementary: CR2MET v2.0 2001-2019 with IMERG fallback <= 250 mm/yr"
+      }
+    ],
+    "moon": [
+      {
+        "id": "volcanic_broad",
+        "type": "flag",
+        "column": "volcanic_broad",
+        "label": "complementary: volcanic sequences of any age (broad criterion)"
+      }
+    ]
+  },
+  "sites_rule": "Sites are taken only from verified polygons in data/chile/sites/<id>.geojson. A site without a polygon is 'pending_geometry': no cells, no score, its validation check is reported as pending (passed = null). No circles or annuli are generated.",
+  "paths": {
+    "sites_dir": "data/chile/sites",
+    "precip_imerg": "data/chile/processed/imerg_precip_2001_2024.tif"
   }
 }

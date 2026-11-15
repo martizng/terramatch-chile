@@ -6,6 +6,8 @@ Rules come from config/terramatch_config.json (project doc v2.0, section 8, Fase
   D   = sum(w_i m_i d_i) / sum(w_i m_i),  S = 100 exp(-D) global similarity
   coverage = sum(w_i m_i) / sum(w_i); below coverage_min -> "insufficient_data"
   cells failing the profile filter -> "outside_filter" (never ranked)
+  cells without data for the filter -> "no_filter_data" (never ranked, never read as low similarity)
+  scale: IQR; if IQR = 0, standard deviation; if both are 0 the variable is EXCLUDED (no artificial scale)
 
 AI-Assisted: Claude (draft of this module; logic reviewed and tested by the team).
 """
@@ -17,6 +19,10 @@ from config import CFG, VARS
 
 class TargetPending(Exception):
     """A planetary profile still has variables without a verified value."""
+
+
+class FilterDataMissing(Exception):
+    """The layer needed by a profile filter is not available; the profile is not ranked."""
 
 
 def _tf(x, var):
@@ -48,36 +54,49 @@ def target_ranges(target):
             for v in VARS}
 
 
-def apply_filter(master, target):
-    f = target.get("filter")
+def filter_state(master, f):
+    """Per cell: 1 = passes, 0 = fails, NaN = no data for the filter column.
+    Raises FilterDataMissing if the column is absent or empty (the filter is never switched off)."""
     if not f:
-        return pd.Series(True, index=master.index)
+        return pd.Series(1.0, index=master.index)
     col = master.get(f["column"])
     if col is None or col.isna().all():
-        return pd.Series(False, index=master.index)
+        raise FilterDataMissing(f"no data for filter column '{f['column']}' ({f.get('label', '')})")
+    col = col.astype(float)
     if f["type"] == "max":
-        return (col <= f["max"]).fillna(False)
-    if f["type"] == "flag":
-        return (col == 1).fillna(False)
-    raise ValueError(f"unknown filter type {f['type']}")
+        ok = col <= f["max"]
+    elif f["type"] == "flag":
+        ok = col == 1
+    else:
+        raise ValueError(f"unknown filter type {f['type']}")
+    return ok.astype(float).where(col.notna())
 
 
-def robust_scales(master):
+def apply_filter(master, target):
+    """Boolean: True only where the filter is passed with data."""
+    return (filter_state(master, target.get("filter")) == 1).fillna(False)
+
+
+def robust_scales(master, report=None):
+    """IQR per variable over all Chilean cells; SD if IQR = 0; excluded if both are 0 (doc v2.0, Fase 3)."""
     sc = {}
     for v in VARS:
         if v not in master:
+            if report is not None: report[v] = "excluded: column absent"
             continue
         x = _tf(master[v].astype(float), v).dropna()
         if len(x) < 10:
+            if report is not None: report[v] = f"excluded: only {len(x)} cells with data"
             continue
-        iqr = x.quantile(0.75) - x.quantile(0.25)
-        sd = x.std()
-        if np.isfinite(iqr) and iqr > 0:
-            sc[v] = float(iqr)
-        elif np.isfinite(sd) and sd > 0:
-            sc[v] = float(sd)
-        # If both scales vanish, this variable is constant / non-informative:
-        # exclude it from distances AND coverage denominator, not scale=1.
+        iqr = float(x.quantile(0.75) - x.quantile(0.25)); sd = float(x.std())
+        if iqr > 0:
+            sc[v] = iqr
+            if report is not None: report[v] = f"IQR = {iqr:.6g}"
+        elif sd > 0:
+            sc[v] = sd
+            if report is not None: report[v] = f"IQR = 0, SD used = {sd:.6g}"
+        elif report is not None:
+            report[v] = "excluded: IQR = 0 and SD = 0"
     return sc
 
 
@@ -100,7 +119,8 @@ def profile(master, target, scales=None):
     scales = robust_scales(master) if scales is None else scales
     d = distances(master, target, scales)
     w = {v: CFG["variables"][v]["weight"] for v in VARS}
-    passes = apply_filter(master, target).to_numpy()
+    fstate = filter_state(master, target.get("filter")).to_numpy()
+    passes = fstate == 1
     res = pd.DataFrame({"cell_id": master["cell_id"].values, "passes_filter": passes})
     num = np.zeros(len(res)); den = np.zeros(len(res)); n_av = np.zeros(len(res), int)
     for v in VARS:
@@ -109,16 +129,14 @@ def profile(master, target, scales=None):
         ok = ~np.isnan(d[v])
         num += np.where(ok, w[v] * np.nan_to_num(d[v]), 0); den += np.where(ok, w[v], 0); n_av += ok
     res["n_vars"] = n_av
-    active_weight = sum(w[v] for v in VARS if v in scales)
-    res["coverage"] = den / active_weight if active_weight > 0 else 0.0
-    # Original MVP requires information in at least two of the three variables.
-    # An excluded constant variable does not count as an observed variable.
-    enough = (res["coverage"].to_numpy() >= CFG["coverage_min"] - 1e-9) & (n_av >= 2)
+    res["coverage"] = den / sum(w.values())
+    enough = res["coverage"].to_numpy() >= CFG["coverage_min"] - 1e-9
     with np.errstate(invalid="ignore", divide="ignore"):
         D = np.where(enough & passes, num / np.where(den > 0, den, 1), np.nan)
     res["D"] = D
     res["S"] = 100 * np.exp(-D)
-    res["status"] = np.where(~passes, "outside_filter", np.where(~enough, "insufficient_data", "scored"))
+    res["status"] = np.select([np.isnan(fstate), fstate == 0, ~enough],
+                              ["no_filter_data", "outside_filter", "insufficient_data"], "scored")
     return res
 
 
