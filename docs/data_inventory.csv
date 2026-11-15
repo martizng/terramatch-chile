@@ -1,9 +1,9 @@
-
 id,nombre_dataset,planeta_zona,variable,fuente,formato_original,resolucion,responsable,estado,ruta_github,observaciones
 CH001,ASTER_GDEM_V3,Chile,Elevacion,ASTER_GDEM,Por verificar,Aprox. 30 m,Integrante 3,Por recibir,,
 CH002,GPM_IMERG_FINAL_V07,Chile,Precipitacion,GPM_NASA,Por verificar,0.1 grados,Integrante 3,Por recibir,,
 CH003,SERNAGEOMIN_GEOLOGIA,Chile,Unidades geologicas,SERNAGEOMIN,Por verificar,Escala 1:1000000,Integrante 3,Por recibir,,
 CH004,BCN_LIMITES,Chile,Limites territoriales,BCN,Por verificar,Por verificar,Integrante 3,Por recibir,,
 CH005,SITIOS_PILOTO,Chile,Areas de estudio,Delimitacion del proyecto,GeoJSON o GPKG,Por verificar,Integrante 3,Por recibir,,
-MA001,MOLA_MEGDR,Marte_Elysium_Planitia,Elevacion,NASA_MOLA,Por verificar,128 px por grado,Integrante 2,Por recibir,,
+MA001,MOLA_MEGDR,Marte_Elysium_Planitia,Elevacion,NASA_MOLA,PDS3 IMG + LBL; recorte GeoTIFF,128 px por grado,Integrante 2,Recibido; validacion parcial,data/mars/processed/elysium_mola_dem.tif,Original respaldado fuera de Git; pendiente evaluar porcentaje medido por ventana; URL y fecha exactas de descarga y script de recorte pendientes.
+MA002,MOLA_MEGDR_COUNTS,Marte_Elysium_Planitia,Conteo de observaciones directas,NASA_MOLA,PDS3 IMG + LBL; recorte GeoTIFF,128 px por grado,Integrante 2,Recibido; validacion parcial,data/mars/processed/elysium_mola_counts.tif,1253/4096 pixeles con observacion directa (30.59%); 2843 NoData; se requiere filtro por ventana >=50%; originales fuera de Git.
 MO001,SLDEM2015,Luna_Mare_Tranquillitatis,Elevacion,NASA_LOLA,Por verificar,Por verificar,Integrante 2,Por recibir,,
