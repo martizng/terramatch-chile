@@ -162,17 +162,17 @@ Para cada ventana de 5 km y para cada sitio se calculan las estadísticas necesa
 
 ### 6.1 Rango del perfil y distancia por variable
 
-Para cada variable $(i$), el perfil planetario tiene un rango de referencia \([bajo_i, alto_i]\). La distancia normalizada de un valor terrestre \(x_i\) se define como:
+Para cada variable $i$, el perfil planetario tiene un rango de referencia $[bajo_i, alto_i]$. La distancia normalizada de un valor terrestre $x_i$ se define como:
 
 $$
 d_i = \frac{\max(bajo_i-x_i,\ 0,\ x_i-alto_i)}{s_i}
 $$
 
-Donde \(s_i\) corresponde a la escala de normalización de la variable. Se define inicialmente como el rango intercuartílico (IQR) de esa variable en Chile:
+Donde $s_i$ corresponde a la escala de normalización de la variable. Se define inicialmente como el rango intercuartílico (IQR) de esa variable en Chile:
 
-\[
+$$
 IQR_i = Q_{75,i} - Q_{25,i}
-\]
+$$
 
 La distancia es cero cuando el valor terrestre se encuentra dentro del rango del perfil. Si queda fuera, se mide la distancia al límite más cercano y se normaliza por la variabilidad de esa variable en Chile.
 
@@ -182,29 +182,29 @@ Para evitar divisiones por cero, se aplica el siguiente criterio:
 2. Si el IQR es igual a cero y la desviación estándar es mayor que cero, se utiliza la desviación estándar.
 3. Si tanto el IQR como la desviación estándar son cero, la variable se considera constante y no informativa para esa comparación. Se excluye del cálculo de distancia y de la cobertura correspondiente.
 
-El relieve local se transforma mediante \(\log(1+x)\) antes del cálculo, debido a su distribución asimétrica. La misma transformación se aplica de forma consistente al perfil y a los valores terrestres.
+El relieve local se transforma mediante $\log(1+x)$ antes del cálculo, debido a su distribución asimétrica. La misma transformación se aplica de forma consistente al perfil y a los valores terrestres.
 
 ### 6.2 Distancia y similitud agregadas
 
-Para cada variable se define \(m_i=1\) si existe un dato válido y utilizable, y \(m_i=0\) si falta o no puede utilizarse. La distancia topográfica agregada se calcula como:
+Para cada variable se define $m_i=1$ si existe un dato válido y utilizable, y $m_i=0$ si falta o no puede utilizarse. La distancia topográfica agregada se calcula como:
 
-\[
+$$
 D_{top} = \frac{\sum_i w_i m_i d_i}{\sum_i w_i m_i}
-\]
+$$
 
 La similitud topográfica se calcula como:
 
-\[
+$$
 S_{top} = 100\cdot e^{-D_{top}}
-\]
+$$
 
 En el MVP las tres variables tienen el mismo peso inicial:
 
-\[
+$$
 w_1=w_2=w_3=\frac{1}{3}
-\]
+$$
 
-Como el puntaje incluye solo la dimensión topográfica, la similitud global del MVP coincide con \(S_{top}\). La aplicación debe mostrar tanto el puntaje global como la distancia/similitud de cada variable para que el resultado sea explicable.
+Como el puntaje incluye solo la dimensión topográfica, la similitud global del MVP coincide con $S_{top}$. La aplicación debe mostrar tanto el puntaje global como la distancia/similitud de cada variable para que el resultado sea explicable.
 
 Esta transformación es una decisión metodológica del proyecto, no un estándar científico universal. Se debe documentar y evaluar su comportamiento con los sitios de referencia y controles definidos.
 
@@ -212,9 +212,9 @@ Esta transformación es una decisión metodológica del proyecto, no un estánda
 
 Un dato faltante nunca se reemplaza por cero. La cobertura se calcula como:
 
-\[
+$$
 Cobertura = \frac{\sum_i w_i m_i}{\sum_i w_i}
-\]
+$$
 
 Las variables excluidas por presentar variabilidad nula tanto en el IQR como en la desviación estándar no se consideran disponibles para esa comparación. Por lo tanto, tampoco aportan al numerador ni al denominador de la cobertura.
 
