@@ -1,0 +1,40 @@
+{
+  "file": "imerg_precip_2001_2024.tif",
+  "product": "GPM_3IMERGM",
+  "version_in_filenames": [
+    "V07B"
+  ],
+  "doi": "10.5067/GPM/IMERG/3B-MONTH/07",
+  "source_url": "https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGM_07/summary",
+  "variable": "Grid/precipitation",
+  "units_in_files": [
+    "mm/hr"
+  ],
+  "units_out": "mm/year",
+  "period": [
+    2001,
+    2024
+  ],
+  "n_files": 288,
+  "native_resolution_deg": 0.1,
+  "crs": "EPSG:4326",
+  "nodata": -9999.0,
+  "extent": [
+    -76.2,
+    -56.2,
+    -65.8,
+    -16.8
+  ],
+  "pct_nan_pixels": 0.0,
+  "stats_mm_yr": {
+    "min": 4.983000269043259,
+    "max": 4546.9152008369565,
+    "mean": 582.4577070055424
+  },
+  "built_utc": "2026-11-15T03:41:33Z",
+  "limitations": [
+    "Resolucion ~10 km: el filtro de aridez (<=250 mm/anio) es regional.",
+    "Datos faltantes no se rellenan con cero (pixel queda NaN).",
+    "En desiertos hiperaridos las estimaciones por satelite tienen gran incertidumbre relativa."
+  ]
+}
